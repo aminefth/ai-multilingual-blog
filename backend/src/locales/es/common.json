@@ -1,0 +1,87 @@
+{
+  "app": {
+    "name": "Blog de Herramientas de IA",
+    "tagline": "Descubre las mejores herramientas y recursos de IA"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "blog": "Blog",
+    "categories": "Categorías",
+    "about": "Acerca de",
+    "contact": "Contacto",
+    "login": "Iniciar Sesión",
+    "signup": "Registrarse",
+    "logout": "Cerrar Sesión",
+    "dashboard": "Panel",
+    "profile": "Perfil",
+    "subscription": "Suscripción"
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "signup": "Registrarse",
+    "logout": "Cerrar Sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "name": "Nombre",
+    "forgotPassword": "¿Olvidó su contraseña?",
+    "resetPassword": "Restablecer contraseña",
+    "alreadyHaveAccount": "¿Ya tiene una cuenta?",
+    "dontHaveAccount": "¿No tiene una cuenta?",
+    "createAccount": "Crear cuenta",
+    "loginSuccess": "¡Inicio de sesión exitoso!",
+    "signupSuccess": "¡Cuenta creada exitosamente!",
+    "passwordResetSuccess": "¡Contraseña restablecida exitosamente!"
+  },
+  "blog": {
+    "readMore": "Leer más",
+    "publishedOn": "Publicado el",
+    "by": "por",
+    "categories": "Categorías",
+    "tags": "Etiquetas",
+    "relatedPosts": "Publicaciones relacionadas",
+    "comments": "Comentarios",
+    "leaveComment": "Deje un comentario",
+    "subscribeToReadMore": "Suscríbase para leer más",
+    "premiumContent": "Contenido Premium"
+  },
+  "subscription": {
+    "pricing": "Precios",
+    "plans": "Planes de suscripción",
+    "features": "Características",
+    "subscribe": "Suscribirse",
+    "freeAccount": "Cuenta Gratuita",
+    "basicPlan": "Plan Básico",
+    "proPlan": "Plan Pro",
+    "enterprisePlan": "Plan Empresarial",
+    "subscribedSuccessfully": "¡Suscripción exitosa!",
+    "paymentFailed": "Error en el pago",
+    "currentPlan": "Plan actual",
+    "upgrade": "Actualizar",
+    "downgrade": "Degradar",
+    "cancel": "Cancelar suscripción"
+  },
+  "affiliate": {
+    "program": "Programa de afiliados",
+    "yourCode": "Su código de afiliado",
+    "earnings": "Ganancias",
+    "clicks": "Clics",
+    "conversions": "Conversiones",
+    "paymentHistory": "Historial de pagos",
+    "conversionRate": "Tasa de conversión"
+  },
+  "buttons": {
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "submit": "Enviar",
+    "continue": "Continuar",
+    "back": "Atrás"
+  },
+  "messages": {
+    "saved": "¡Guardado exitosamente!",
+    "deleted": "¡Eliminado exitosamente!",
+    "updated": "¡Actualizado exitosamente!",
+    "error": "Ha ocurrido un error"
+  }
+}

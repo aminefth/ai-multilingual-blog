@@ -1,0 +1,9 @@
+module.exports.authController = require('./auth.controller');
+module.exports.userController = require('./user.controller');
+module.exports.blogController = require('./blog.controller');
+module.exports.translationController = require('./translation.controller');
+module.exports.seoController = require('./seo.controller');
+module.exports.subscriptionController = require('./subscription.controller');
+module.exports.analyticsController = require('./analytics.controller');
+module.exports.affiliateController = require('./affiliate.controller');
+module.exports.adminController = require('./admin.controller');

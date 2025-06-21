@@ -1,0 +1,9 @@
+module.exports.Token = require('./token.model');
+module.exports.User = require('./user.model');
+module.exports.BlogPost = require('./blogPost.model');
+module.exports.Translation = require('./translation.model');
+module.exports.Subscription = require('./subscription.model');
+module.exports.Analytics = require('./analytics.model');
+module.exports.Affiliate = require('./affiliate.model');
+module.exports.SystemSettings = require('./system-settings.model');
+module.exports.Category = require('./category.model');

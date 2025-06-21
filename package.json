@@ -1,0 +1,47 @@
+{
+  "name": "ai-tools-blog",
+  "version": "1.0.0",
+  "description": "Production-ready multilingual blog platform for AI tools reviews and monetization",
+  "private": true,
+  "workspaces": [
+    "backend"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "cd backend && npm start",
+    "dev": "cd backend && npm run dev",
+    "test": "npm run test:backend",
+    "test:backend": "cd backend && npm test",
+    "test:watch": "cd backend && npm run test:watch",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "echo 'Frontend build step - to be implemented'",
+    "lint": "npm run lint:backend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:fix": "cd backend && npm run lint:fix",
+    "prettier": "prettier --check \"**/*.{js,jsx,json,md}\" --ignore-path .gitignore",
+    "prettier:fix": "prettier --write \"**/*.{js,jsx,json,md}\" --ignore-path .gitignore",
+    "docker:prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml up",
+    "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.dev.yml up",
+    "docker:test": "docker-compose -f docker-compose.yml -f docker-compose.test.yml up",
+    "deploy": "pm2 startOrRestart ecosystem.config.js --env production",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "*.{js,jsx}": [
+      "eslint --fix",
+      "git add"
+    ],
+    "*.{json,md}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^14.0.1",
+    "prettier": "^3.5.3"
+  }
+}

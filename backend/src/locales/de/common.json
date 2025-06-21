@@ -1,0 +1,87 @@
+{
+  "app": {
+    "name": "KI-Tools Blog",
+    "tagline": "Entdecken Sie die besten KI-Tools und Ressourcen"
+  },
+  "navigation": {
+    "home": "Startseite",
+    "blog": "Blog",
+    "categories": "Kategorien",
+    "about": "Über uns",
+    "contact": "Kontakt",
+    "login": "Anmelden",
+    "signup": "Registrieren",
+    "logout": "Abmelden",
+    "dashboard": "Dashboard",
+    "profile": "Profil",
+    "subscription": "Abonnement"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "signup": "Registrieren",
+    "logout": "Abmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "name": "Name",
+    "forgotPassword": "Passwort vergessen?",
+    "resetPassword": "Passwort zurücksetzen",
+    "alreadyHaveAccount": "Haben Sie bereits ein Konto?",
+    "dontHaveAccount": "Haben Sie noch kein Konto?",
+    "createAccount": "Konto erstellen",
+    "loginSuccess": "Anmeldung erfolgreich!",
+    "signupSuccess": "Konto erfolgreich erstellt!",
+    "passwordResetSuccess": "Passwort erfolgreich zurückgesetzt!"
+  },
+  "blog": {
+    "readMore": "Weiterlesen",
+    "publishedOn": "Veröffentlicht am",
+    "by": "von",
+    "categories": "Kategorien",
+    "tags": "Tags",
+    "relatedPosts": "Ähnliche Beiträge",
+    "comments": "Kommentare",
+    "leaveComment": "Kommentar hinterlassen",
+    "subscribeToReadMore": "Abonnieren Sie um mehr zu lesen",
+    "premiumContent": "Premium-Inhalte"
+  },
+  "subscription": {
+    "pricing": "Preise",
+    "plans": "Abonnement-Pläne",
+    "features": "Funktionen",
+    "subscribe": "Abonnieren",
+    "freeAccount": "Kostenloses Konto",
+    "basicPlan": "Basis-Plan",
+    "proPlan": "Pro-Plan",
+    "enterprisePlan": "Unternehmens-Plan",
+    "subscribedSuccessfully": "Erfolgreich abonniert!",
+    "paymentFailed": "Zahlung fehlgeschlagen",
+    "currentPlan": "Aktueller Plan",
+    "upgrade": "Upgraden",
+    "downgrade": "Downgraden",
+    "cancel": "Abonnement kündigen"
+  },
+  "affiliate": {
+    "program": "Partnerprogramm",
+    "yourCode": "Ihr Partner-Code",
+    "earnings": "Verdienste",
+    "clicks": "Klicks",
+    "conversions": "Konversionen",
+    "paymentHistory": "Zahlungsverlauf",
+    "conversionRate": "Konversionsrate"
+  },
+  "buttons": {
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "submit": "Absenden",
+    "continue": "Fortfahren",
+    "back": "Zurück"
+  },
+  "messages": {
+    "saved": "Erfolgreich gespeichert!",
+    "deleted": "Erfolgreich gelöscht!",
+    "updated": "Erfolgreich aktualisiert!",
+    "error": "Ein Fehler ist aufgetreten"
+  }
+}

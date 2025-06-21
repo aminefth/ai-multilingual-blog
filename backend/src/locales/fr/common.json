@@ -1,0 +1,87 @@
+{
+  "app": {
+    "name": "Blog d'Outils IA",
+    "tagline": "Découvrez les meilleurs outils et ressources d'IA"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "blog": "Blog",
+    "categories": "Catégories",
+    "about": "À Propos",
+    "contact": "Contact",
+    "login": "Connexion",
+    "signup": "Inscription",
+    "logout": "Déconnexion",
+    "dashboard": "Tableau de bord",
+    "profile": "Profil",
+    "subscription": "Abonnement"
+  },
+  "auth": {
+    "login": "Connexion",
+    "signup": "Inscription",
+    "logout": "Déconnexion",
+    "email": "Email",
+    "password": "Mot de passe",
+    "name": "Nom",
+    "forgotPassword": "Mot de passe oublié ?",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "dontHaveAccount": "Vous n'avez pas de compte ?",
+    "createAccount": "Créer un compte",
+    "loginSuccess": "Connexion réussie !",
+    "signupSuccess": "Compte créé avec succès !",
+    "passwordResetSuccess": "Réinitialisation du mot de passe réussie !"
+  },
+  "blog": {
+    "readMore": "Lire la suite",
+    "publishedOn": "Publié le",
+    "by": "par",
+    "categories": "Catégories",
+    "tags": "Tags",
+    "relatedPosts": "Articles similaires",
+    "comments": "Commentaires",
+    "leaveComment": "Laisser un commentaire",
+    "subscribeToReadMore": "Abonnez-vous pour lire plus",
+    "premiumContent": "Contenu Premium"
+  },
+  "subscription": {
+    "pricing": "Tarifs",
+    "plans": "Plans d'abonnement",
+    "features": "Fonctionnalités",
+    "subscribe": "S'abonner",
+    "freeAccount": "Compte Gratuit",
+    "basicPlan": "Plan Basic",
+    "proPlan": "Plan Pro",
+    "enterprisePlan": "Plan Entreprise",
+    "subscribedSuccessfully": "Abonnement réussi !",
+    "paymentFailed": "Paiement échoué",
+    "currentPlan": "Abonnement actuel",
+    "upgrade": "Mettre à niveau",
+    "downgrade": "Rétrograder",
+    "cancel": "Annuler l'abonnement"
+  },
+  "affiliate": {
+    "program": "Programme d'affiliation",
+    "yourCode": "Votre code d'affiliation",
+    "earnings": "Gains",
+    "clicks": "Clics",
+    "conversions": "Conversions",
+    "paymentHistory": "Historique des paiements",
+    "conversionRate": "Taux de conversion"
+  },
+  "buttons": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "submit": "Soumettre",
+    "continue": "Continuer",
+    "back": "Retour"
+  },
+  "messages": {
+    "saved": "Enregistré avec succès !",
+    "deleted": "Supprimé avec succès !",
+    "updated": "Mis à jour avec succès !",
+    "error": "Une erreur est survenue"
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "app": {
+    "name": "AI Tools Blog",
+    "tagline": "Discover the best AI tools and resources"
+  },
+  "navigation": {
+    "home": "Home",
+    "blog": "Blog",
+    "categories": "Categories",
+    "about": "About",
+    "contact": "Contact",
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "subscription": "Subscription"
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "createAccount": "Create Account",
+    "loginSuccess": "Login successful!",
+    "signupSuccess": "Account created successfully!",
+    "passwordResetSuccess": "Password reset successful!"
+  },
+  "blog": {
+    "readMore": "Read More",
+    "publishedOn": "Published on",
+    "by": "by",
+    "categories": "Categories",
+    "tags": "Tags",
+    "relatedPosts": "Related Posts",
+    "comments": "Comments",
+    "leaveComment": "Leave a Comment",
+    "subscribeToReadMore": "Subscribe to Read More",
+    "premiumContent": "Premium Content"
+  },
+  "subscription": {
+    "pricing": "Pricing",
+    "plans": "Subscription Plans",
+    "features": "Features",
+    "subscribe": "Subscribe",
+    "freeAccount": "Free Account",
+    "basicPlan": "Basic Plan",
+    "proPlan": "Pro Plan",
+    "enterprisePlan": "Enterprise Plan",
+    "subscribedSuccessfully": "Subscribed successfully!",
+    "paymentFailed": "Payment failed",
+    "currentPlan": "Current Plan",
+    "upgrade": "Upgrade",
+    "downgrade": "Downgrade",
+    "cancel": "Cancel Subscription"
+  },
+  "affiliate": {
+    "program": "Affiliate Program",
+    "yourCode": "Your Affiliate Code",
+    "earnings": "Earnings",
+    "clicks": "Clicks",
+    "conversions": "Conversions",
+    "paymentHistory": "Payment History",
+    "conversionRate": "Conversion Rate"
+  },
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "submit": "Submit",
+    "continue": "Continue",
+    "back": "Back"
+  },
+  "messages": {
+    "saved": "Saved successfully!",
+    "deleted": "Deleted successfully!",
+    "updated": "Updated successfully!",
+    "error": "An error occurred"
+  }
+}
