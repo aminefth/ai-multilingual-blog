@@ -2,95 +2,98 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    lowercase: true,
-    validate(value) {
-      if (!validator.isEmail(value)) {
-        throw new Error('Invalid email');
-      }
-    },
-  },
-  password: {
-    type: String,
-    required: true,
-    trim: true,
-    minlength: 8,
-    validate(value) {
-      if (!value.match(/\d/) || !value.match(/[a-zA-Z]/)) {
-        throw new Error('Password must contain at least one letter and one number');
-      }
-    },
-    private: true, // used by the toJSON plugin
-  },
-  role: {
-    type: String,
-    enum: ['user', 'admin', 'editor', 'affiliate'],
-    default: 'user',
-  },
-  isEmailVerified: {
-    type: Boolean,
-    default: false,
-  },
-  subscription: {
-    type: {
+const userSchema = new mongoose.Schema(
+  {
+    name: {
       type: String,
-      enum: ['free', 'basic', 'pro', 'enterprise'],
-      default: 'free',
+      required: true,
+      trim: true,
     },
-    startDate: {
-      type: Date,
-    },
-    endDate: {
-      type: Date,
-    },
-    stripeCustomerId: {
+    email: {
       type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error('Invalid email');
+        }
+      },
     },
-    stripeSubscriptionId: {
+    password: {
       type: String,
+      required: true,
+      trim: true,
+      minlength: 8,
+      validate(value) {
+        if (!value.match(/\d/) || !value.match(/[a-zA-Z]/)) {
+          throw new Error('Password must contain at least one letter and one number');
+        }
+      },
+      private: true, // used by the toJSON plugin
     },
-    status: {
+    role: {
       type: String,
-      enum: ['active', 'canceled', 'past_due', 'unpaid', 'trial'],
+      enum: ['user', 'admin', 'editor', 'affiliate'],
+      default: 'user',
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    subscription: {
+      type: {
+        type: String,
+        enum: ['free', 'basic', 'pro', 'enterprise'],
+        default: 'free',
+      },
+      startDate: {
+        type: Date,
+      },
+      endDate: {
+        type: Date,
+      },
+      stripeCustomerId: {
+        type: String,
+      },
+      stripeSubscriptionId: {
+        type: String,
+      },
+      status: {
+        type: String,
+        enum: ['active', 'canceled', 'past_due', 'unpaid', 'trial'],
+      },
+    },
+    preferredLanguage: {
+      type: String,
+      enum: ['en', 'fr', 'de', 'es'],
+      default: 'en',
+    },
+    affiliateCode: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    affiliateStats: {
+      clicks: {
+        type: Number,
+        default: 0,
+      },
+      conversions: {
+        type: Number,
+        default: 0,
+      },
+      revenue: {
+        type: Number,
+        default: 0,
+      },
     },
   },
-  preferredLanguage: {
-    type: String,
-    enum: ['en', 'fr', 'de', 'es'],
-    default: 'en',
+  {
+    timestamps: true,
   },
-  affiliateCode: {
-    type: String,
-    unique: true,
-    sparse: true,
-  },
-  affiliateStats: {
-    clicks: {
-      type: Number,
-      default: 0,
-    },
-    conversions: {
-      type: Number,
-      default: 0,
-    },
-    revenue: {
-      type: Number,
-      default: 0,
-    },
-  },
-}, {
-  timestamps: true,
-});
+);
 
 // Add plugin that converts mongoose to json
 userSchema.set('toJSON', {

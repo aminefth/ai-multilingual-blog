@@ -22,7 +22,7 @@ const initializeI18n = () => {
       fallbackLng: 'en',
       preload: ['en', 'fr', 'de', 'es'],
       supportedLngs: ['en', 'fr', 'de', 'es'],
-      
+
       // Namespace configuration
       defaultNS: 'common',
       ns: ['common', 'errors', 'validation', 'emails', 'blog'],
@@ -39,7 +39,7 @@ const initializeI18n = () => {
       // Performance and caching
       load: 'languageOnly',
       saveMissing: config.env === 'development',
-      
+
       interpolation: {
         escapeValue: false, // React already safely escapes
       },

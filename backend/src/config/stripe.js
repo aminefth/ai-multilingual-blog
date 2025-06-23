@@ -1,5 +1,6 @@
 const Stripe = require('stripe');
 const config = require('./config');
+const logger = require('../utils/logger');
 
 const stripe = Stripe(config.stripe.secretKey, {
   apiVersion: '2023-10-16',
@@ -34,10 +35,10 @@ const createCheckoutSession = async (customerId, priceId, successUrl, cancelUrl)
       allow_promotion_codes: true, // Allow discount codes
       billing_address_collection: 'auto',
     });
-    
+
     return session;
   } catch (error) {
-    console.error('Error creating checkout session:', error);
+    logger.error('Error creating checkout session:', error);
     throw error;
   }
 };
@@ -50,10 +51,10 @@ const createCheckoutSession = async (customerId, priceId, successUrl, cancelUrl)
 const getSubscription = async (subscriptionId) => {
   try {
     return await stripe.subscriptions.retrieve(subscriptionId, {
-      expand: ['customer', 'items.data.price']
+      expand: ['customer', 'items.data.price'],
     });
   } catch (error) {
-    console.error('Error retrieving Stripe subscription:', error);
+    logger.error('Error retrieving Stripe subscription:', error);
     throw error;
   }
 };
@@ -67,7 +68,7 @@ const getCustomer = async (customerId) => {
   try {
     return await stripe.customers.retrieve(customerId);
   } catch (error) {
-    console.error('Error retrieving Stripe customer:', error);
+    logger.error('Error retrieving Stripe customer:', error);
     throw error;
   }
 };
@@ -81,16 +82,18 @@ const getCustomer = async (customerId) => {
 const updateSubscription = async (subscriptionId, newPriceId) => {
   try {
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    
+
     return await stripe.subscriptions.update(subscriptionId, {
-      items: [{
-        id: subscription.items.data[0].id,
-        price: newPriceId,
-      }],
+      items: [
+        {
+          id: subscription.items.data[0].id,
+          price: newPriceId,
+        },
+      ],
       proration_behavior: 'create_prorations',
     });
   } catch (error) {
-    console.error('Error updating Stripe subscription:', error);
+    logger.error('Error updating Stripe subscription:', error);
     throw error;
   }
 };
@@ -113,7 +116,7 @@ const cancelSubscription = async (subscriptionId, atPeriodEnd = true) => {
       return await stripe.subscriptions.cancel(subscriptionId);
     }
   } catch (error) {
-    console.error('Error canceling Stripe subscription:', error);
+    logger.error('Error canceling Stripe subscription:', error);
     throw error;
   }
 };
@@ -129,7 +132,7 @@ const reactivateSubscription = async (subscriptionId) => {
       cancel_at_period_end: false,
     });
   } catch (error) {
-    console.error('Error reactivating Stripe subscription:', error);
+    logger.error('Error reactivating Stripe subscription:', error);
     throw error;
   }
 };
@@ -147,7 +150,7 @@ const createCustomerPortalSession = async (customerId, returnUrl) => {
       return_url: returnUrl,
     });
   } catch (error) {
-    console.error('Error creating customer portal session:', error);
+    logger.error('Error creating customer portal session:', error);
     throw error;
   }
 };
@@ -160,13 +163,9 @@ const createCustomerPortalSession = async (customerId, returnUrl) => {
  */
 const constructEventFromPayload = (payload, signature) => {
   try {
-    return stripe.webhooks.constructEvent(
-      payload,
-      signature,
-      config.stripe.webhookSecret
-    );
+    return stripe.webhooks.constructEvent(payload, signature, config.stripe.webhookSecret);
   } catch (error) {
-    console.error('Error verifying webhook signature:', error);
+    logger.error('Error verifying webhook signature:', error);
     throw error;
   }
 };
@@ -186,7 +185,7 @@ const createUsageRecord = async (subscriptionItemId, quantity, action = 'increme
       timestamp: Math.floor(Date.now() / 1000),
     });
   } catch (error) {
-    console.error('Error creating usage record:', error);
+    logger.error('Error creating usage record:', error);
     throw error;
   }
 };
@@ -203,10 +202,10 @@ const getUpcomingInvoice = async (customerId, subscriptionId = null) => {
     if (subscriptionId) {
       params.subscription = subscriptionId;
     }
-    
+
     return await stripe.invoices.retrieveUpcoming(params);
   } catch (error) {
-    console.error('Error retrieving upcoming invoice:', error);
+    logger.error('Error retrieving upcoming invoice:', error);
     throw error;
   }
 };
@@ -224,7 +223,7 @@ const getPaymentMethods = async (customerId, type = 'card') => {
       type,
     });
   } catch (error) {
-    console.error('Error retrieving payment methods:', error);
+    logger.error('Error retrieving payment methods:', error);
     throw error;
   }
 };
@@ -241,7 +240,7 @@ const applyDiscount = async (customerId, couponId) => {
       coupon: couponId,
     });
   } catch (error) {
-    console.error('Error applying discount:', error);
+    logger.error('Error applying discount:', error);
     throw error;
   }
 };
@@ -260,7 +259,7 @@ const getInvoices = async (customerId, limit = 10) => {
       status: 'paid',
     });
   } catch (error) {
-    console.error('Error retrieving invoices:', error);
+    logger.error('Error retrieving invoices:', error);
     throw error;
   }
 };
@@ -280,7 +279,7 @@ module.exports = {
   getPaymentMethods,
   applyDiscount,
   getInvoices,
-  
+
   // Backward compatibility
   constructEventFromWebhook: constructEventFromPayload,
 };

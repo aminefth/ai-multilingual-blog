@@ -34,7 +34,7 @@ const affiliateLinkSchema = mongoose.Schema(
   {
     _id: true,
     timestamps: true,
-  }
+  },
 );
 
 const translationSchema = mongoose.Schema(
@@ -62,7 +62,7 @@ const translationSchema = mongoose.Schema(
   },
   {
     _id: false,
-  }
+  },
 );
 
 const blogPostSchema = mongoose.Schema(
@@ -90,7 +90,7 @@ const blogPostSchema = mongoose.Schema(
       trim: true,
       maxlength: 500,
     },
-    
+
     // Multi-language support
     translations: {
       en: translationSchema,
@@ -98,7 +98,7 @@ const blogPostSchema = mongoose.Schema(
       de: translationSchema,
       es: translationSchema,
     },
-    
+
     // SEO
     metaTitle: {
       type: String,
@@ -112,14 +112,14 @@ const blogPostSchema = mongoose.Schema(
     },
     keywords: [String],
     canonicalUrl: String,
-    
+
     // Monetization
     isPremium: {
       type: Boolean,
       default: false,
     },
     affiliateLinks: [affiliateLinkSchema],
-    
+
     // Analytics
     views: {
       type: Number,
@@ -134,7 +134,7 @@ const blogPostSchema = mongoose.Schema(
       default: 0,
     },
     readingTime: Number,
-    
+
     // Status and relationships
     status: {
       type: String,
@@ -147,7 +147,7 @@ const blogPostSchema = mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    
+
     // Revenue tracking
     revenueGenerated: {
       type: Number,
@@ -157,17 +157,19 @@ const blogPostSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
-    
+
     // Categories and tags
     category: {
       type: mongoose.SchemaTypes.ObjectId,
       ref: 'Category',
     },
-    tags: [{
-      type: String,
-      trim: true,
-    }],
-    
+    tags: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+
     // Featured image
     featuredImage: {
       url: String,
@@ -177,7 +179,7 @@ const blogPostSchema = mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Add plugin that converts mongoose to json
@@ -185,7 +187,7 @@ blogPostSchema.plugin(toJSON);
 blogPostSchema.plugin(paginate);
 
 // Generate slug from title if not provided
-blogPostSchema.pre('validate', function(next) {
+blogPostSchema.pre('validate', function (next) {
   if (this.isModified('title') && !this.slug) {
     this.slug = this.title
       .toLowerCase()
@@ -198,7 +200,7 @@ blogPostSchema.pre('validate', function(next) {
 });
 
 // Calculate reading time before saving
-blogPostSchema.pre('save', function(next) {
+blogPostSchema.pre('save', function (next) {
   if (this.isModified('content')) {
     // Average reading speed: 200 words per minute
     const wordCount = this.content.split(/\s+/).length;
@@ -208,7 +210,7 @@ blogPostSchema.pre('save', function(next) {
 });
 
 // Set publishedAt when status changes to published
-blogPostSchema.pre('save', function(next) {
+blogPostSchema.pre('save', function (next) {
   if (this.isModified('status') && this.status === 'published' && !this.publishedAt) {
     this.publishedAt = new Date();
   }

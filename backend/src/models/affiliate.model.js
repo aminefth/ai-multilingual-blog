@@ -47,7 +47,7 @@ const affiliateLinkSchema = mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // add plugin that converts mongoose to json
@@ -94,7 +94,7 @@ const affiliateSchema = mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // add plugin that converts mongoose to json
@@ -107,9 +107,7 @@ affiliateSchema.plugin(paginate);
  * @returns {Promise<Affiliate[]>}
  */
 affiliateSchema.statics.getTopPerforming = async function (limit = 10) {
-  return this.find({ active: true })
-    .sort({ totalRevenue: -1 })
-    .limit(limit);
+  return this.find({ active: true }).sort({ totalRevenue: -1 }).limit(limit);
 };
 
 /**
@@ -132,9 +130,9 @@ affiliateSchema.statics.trackClick = async function (affiliateId, linkId) {
   link.clicks += 1;
   link.lastClicked = new Date();
   affiliate.totalClicks += 1;
-  
+
   await affiliate.save();
-  
+
   return link;
 };
 
@@ -160,9 +158,9 @@ affiliateSchema.statics.registerConversion = async function (affiliateId, linkId
   link.revenue += amount;
   affiliate.totalConversions += 1;
   affiliate.totalRevenue += amount;
-  
+
   await affiliate.save();
-  
+
   return link;
 };
 

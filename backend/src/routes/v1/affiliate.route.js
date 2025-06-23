@@ -16,7 +16,7 @@ router.get(
   '/tools',
   auth('manageBlogPosts'),
   cacheMiddleware(1800), // Cache for 30 minutes
-  affiliateController.getAffiliateTools
+  affiliateController.getAffiliateTools,
 );
 
 /**
@@ -27,7 +27,7 @@ router.get(
 router.post(
   '/track',
   validate(affiliateValidation.trackAffiliateClick),
-  affiliateController.trackAffiliateClick
+  affiliateController.trackAffiliateClick,
 );
 
 /**
@@ -39,7 +39,7 @@ router.post(
   '/conversion',
   auth('admin'),
   validate(affiliateValidation.registerConversion),
-  affiliateController.registerConversion
+  affiliateController.registerConversion,
 );
 
 /**
@@ -52,7 +52,7 @@ router.get(
   auth('admin'),
   validate(affiliateValidation.getAffiliateReport),
   cacheMiddleware(1800), // Cache for 30 minutes
-  affiliateController.getAffiliateReport
+  affiliateController.getAffiliateReport,
 );
 
 /**
@@ -64,7 +64,7 @@ router.post(
   '/links',
   auth('manageBlogPosts'),
   validate(affiliateValidation.addAffiliateLink),
-  affiliateController.addAffiliateLink
+  affiliateController.addAffiliateLink,
 );
 
 module.exports = router;

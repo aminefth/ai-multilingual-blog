@@ -18,13 +18,15 @@ const updateSEOMetadata = {
   params: Joi.object().keys({
     postId: Joi.string().custom(objectId).required(),
   }),
-  body: Joi.object().keys({
-    metaTitle: Joi.string().max(60),
-    metaDescription: Joi.string().max(160),
-    keywords: Joi.array().items(Joi.string()),
-    canonicalUrl: Joi.string().uri(),
-    language: Joi.string().valid('en', 'fr', 'de', 'es'),
-  }).min(1),
+  body: Joi.object()
+    .keys({
+      metaTitle: Joi.string().max(60),
+      metaDescription: Joi.string().max(160),
+      keywords: Joi.array().items(Joi.string()),
+      canonicalUrl: Joi.string().uri(),
+      language: Joi.string().valid('en', 'fr', 'de', 'es'),
+    })
+    .min(1),
 };
 
 const getSEOMetadata = {
@@ -37,16 +39,18 @@ const getSEOMetadata = {
 };
 
 const updateSiteSEOSettings = {
-  body: Joi.object().keys({
-    siteName: Joi.string().max(100),
-    siteDescription: Joi.string().max(160),
-    defaultOgImage: Joi.string().uri(),
-    googleAnalyticsId: Joi.string(),
-    googleSiteVerification: Joi.string(),
-    bingSiteVerification: Joi.string(),
-    robots: Joi.string(),
-    structuredData: Joi.object(),
-  }).min(1),
+  body: Joi.object()
+    .keys({
+      siteName: Joi.string().max(100),
+      siteDescription: Joi.string().max(160),
+      defaultOgImage: Joi.string().uri(),
+      googleAnalyticsId: Joi.string(),
+      googleSiteVerification: Joi.string(),
+      bingSiteVerification: Joi.string(),
+      robots: Joi.string(),
+      structuredData: Joi.object(),
+    })
+    .min(1),
 };
 
 module.exports = {

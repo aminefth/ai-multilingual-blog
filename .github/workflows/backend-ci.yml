@@ -1,0 +1,77 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mongodb:
+        image: mongo:4.4
+        ports:
+          - 27017:27017
+      redis:
+        image: redis:6
+        ports:
+          - 6379:6379
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+      
+      - name: Lint
+        working-directory: ./backend
+        run: npm run lint
+      
+      - name: Run unit tests
+        working-directory: ./backend
+        run: npm run test:unit
+      
+      - name: Run integration tests
+        working-directory: ./backend
+        run: npm run test:integration
+      
+      - name: Upload test coverage
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./backend/coverage
+      
+  deploy-staging:
+    if: github.ref == 'refs/heads/develop'
+    needs: test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy to staging
+        run: echo "Deploy to staging environment"
+        # Étapes réelles de déploiement
+  
+  deploy-production:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+      - name: Deploy to production
+        run: echo "Deploy to production environment"
+        # Étapes réelles de déploiement

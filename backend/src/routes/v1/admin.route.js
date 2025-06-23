@@ -19,19 +19,14 @@ router.get(
   '/dashboard',
   auth('admin'),
   cacheMiddleware(300), // Cache for 5 minutes
-  adminController.getDashboardData
+  adminController.getDashboardData,
 );
 
 /**
  * GET /v1/admin/users
  * Get all users with pagination, filtering, and sorting
  */
-router.get(
-  '/users',
-  auth('admin'),
-  validate(adminValidation.getUsers),
-  adminController.getUsers
-);
+router.get('/users', auth('admin'), validate(adminValidation.getUsers), adminController.getUsers);
 
 /**
  * PATCH /v1/admin/users/:userId/roles
@@ -41,18 +36,14 @@ router.patch(
   '/users/:userId/roles',
   auth('admin'),
   validate(adminValidation.updateUserRoles),
-  adminController.updateUserRoles
+  adminController.updateUserRoles,
 );
 
 /**
  * GET /v1/admin/approvals
  * Get pending post approvals
  */
-router.get(
-  '/approvals',
-  auth('admin'),
-  adminController.getPendingApprovals
-);
+router.get('/approvals', auth('admin'), adminController.getPendingApprovals);
 
 /**
  * PATCH /v1/admin/approvals/:postId
@@ -62,7 +53,7 @@ router.patch(
   '/approvals/:postId',
   auth('admin'),
   validate(adminValidation.updateApprovalStatus),
-  adminController.updateApprovalStatus
+  adminController.updateApprovalStatus,
 );
 
 /**
@@ -73,7 +64,7 @@ router.get(
   '/settings',
   auth('admin'),
   cacheMiddleware(3600), // Cache for 1 hour
-  adminController.getSystemSettings
+  adminController.getSystemSettings,
 );
 
 /**
@@ -84,7 +75,7 @@ router.patch(
   '/settings',
   auth('admin'),
   validate(adminValidation.updateSystemSettings),
-  adminController.updateSystemSettings
+  adminController.updateSystemSettings,
 );
 
 /**
@@ -95,7 +86,7 @@ router.post(
   '/cache/clear',
   auth('admin'),
   validate(adminValidation.clearCache),
-  adminController.clearCache
+  adminController.clearCache,
 );
 
 module.exports = router;

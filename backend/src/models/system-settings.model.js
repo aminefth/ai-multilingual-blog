@@ -33,7 +33,7 @@ const systemSettingsSchema = mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // add plugin that converts mongoose to json
@@ -59,14 +59,18 @@ systemSettingsSchema.statics.getByKey = async function (key) {
  * @param {ObjectId} [userId] - User ID who modified the setting
  * @returns {Promise<Object>}
  */
-systemSettingsSchema.statics.set = async function (key, value, { description, category, isPublic, userId } = {}) {
+systemSettingsSchema.statics.set = async function (
+  key,
+  value,
+  { description, category, isPublic, userId } = {},
+) {
   const options = { new: true, upsert: true, setDefaultsOnInsert: true };
-  
+
   const update = {
     value,
     lastModifiedBy: userId,
   };
-  
+
   if (description !== undefined) update.description = description;
   if (category !== undefined) update.category = category;
   if (isPublic !== undefined) update.isPublic = isPublic;
@@ -83,7 +87,7 @@ systemSettingsSchema.statics.set = async function (key, value, { description, ca
 systemSettingsSchema.statics.getByCategory = async function (category, publicOnly = false) {
   const query = { category };
   if (publicOnly) query.isPublic = true;
-  
+
   return this.find(query);
 };
 

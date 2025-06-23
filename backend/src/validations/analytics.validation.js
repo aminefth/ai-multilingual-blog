@@ -13,26 +13,34 @@ const trackEvent = {
 
 const getDashboardData = {
   query: Joi.object().keys({
-    period: Joi.string().pattern(/^(\d+)([dwmy])$/).default('30d'),
+    period: Joi.string()
+      .pattern(/^(\d+)([dwmy])$/)
+      .default('30d'),
   }),
 };
 
 const getContentPerformance = {
   query: Joi.object().keys({
-    period: Joi.string().pattern(/^(\d+)([dwmy])$/).default('30d'),
+    period: Joi.string()
+      .pattern(/^(\d+)([dwmy])$/)
+      .default('30d'),
     limit: Joi.number().integer().min(1).max(100).default(20),
   }),
 };
 
 const getRevenueMetrics = {
   query: Joi.object().keys({
-    period: Joi.string().pattern(/^(\d+)([dwmy])$/).default('30d'),
+    period: Joi.string()
+      .pattern(/^(\d+)([dwmy])$/)
+      .default('30d'),
   }),
 };
 
 const getUserEngagement = {
   query: Joi.object().keys({
-    period: Joi.string().pattern(/^(\d+)([dwmy])$/).default('30d'),
+    period: Joi.string()
+      .pattern(/^(\d+)([dwmy])$/)
+      .default('30d'),
   }),
 };
 

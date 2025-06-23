@@ -5,7 +5,6 @@ const { BlogPost } = require('../models');
 const ApiError = require('../utils/ApiError');
 const config = require('../config/config');
 const i18next = require('i18next');
-const pick = require('../utils/pick');
 const analyticsService = require('../services/analytics.service');
 
 /**
@@ -18,12 +17,12 @@ const analyticsService = require('../services/analytics.service');
  * @access Public
  */
 const getLanguages = catchAsync(async (req, res) => {
-  const languages = config.languages.map(code => ({
+  const languages = config.languages.map((code) => ({
     code,
     name: getLanguageName(code),
-    isDefault: code === config.defaultLanguage
+    isDefault: code === config.defaultLanguage,
   }));
-  
+
   res.status(httpStatus.OK).json(languages);
 });
 
@@ -34,11 +33,11 @@ const getLanguages = catchAsync(async (req, res) => {
  */
 const getNamespaces = catchAsync(async (req, res) => {
   const language = req.query.language || config.defaultLanguage;
-  
+
   if (!config.languages.includes(language)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid language code');
   }
-  
+
   const translations = i18next.getResourceBundle(language, 'common');
   res.status(httpStatus.OK).json(translations);
 });
@@ -50,30 +49,30 @@ const getNamespaces = catchAsync(async (req, res) => {
  */
 const translateContent = catchAsync(async (req, res) => {
   const { content, title, sourceLanguage, targetLanguage } = req.body;
-  
+
   if (!config.languages.includes(sourceLanguage) || !config.languages.includes(targetLanguage)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid language code');
   }
-  
+
   if (sourceLanguage === targetLanguage) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Source and target languages cannot be the same');
   }
-  
+
   // Track translation request
   await analyticsService.trackEvent('content_translation_requested', {
     userId: req.user?.id,
     sourceLanguage,
     targetLanguage,
-    contentLength: content.length
+    contentLength: content.length,
   });
-  
+
   const translatedContent = await aiService.translateContent(
     content,
     title,
     sourceLanguage,
-    targetLanguage
+    targetLanguage,
   );
-  
+
   res.status(httpStatus.OK).json(translatedContent);
 });
 
@@ -84,44 +83,44 @@ const translateContent = catchAsync(async (req, res) => {
  */
 const getTranslationStatus = catchAsync(async (req, res) => {
   const { postId } = req.params;
-  
+
   const post = await BlogPost.findById(postId);
   if (!post) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Blog post not found');
   }
-  
+
   const sourceLanguage = post.language || config.defaultLanguage;
   const status = {};
-  
+
   // Check which languages have translations
   for (const lang of config.languages) {
     if (lang === sourceLanguage) {
-      status[lang] = { 
-        status: 'original', 
+      status[lang] = {
+        status: 'original',
         percentage: 100,
-        completedAt: post.updatedAt
+        completedAt: post.updatedAt,
       };
     } else if (post.translations && post.translations[lang] && post.translations[lang].content) {
       const translationDate = post.translations[lang].updatedAt || post.updatedAt;
       const isOutdated = post.updatedAt > translationDate;
-      
-      status[lang] = { 
+
+      status[lang] = {
         status: isOutdated ? 'outdated' : 'translated',
         percentage: 100,
-        completedAt: translationDate
+        completedAt: translationDate,
       };
     } else {
-      status[lang] = { 
-        status: 'pending', 
+      status[lang] = {
+        status: 'pending',
         percentage: 0,
-        completedAt: null
+        completedAt: null,
       };
     }
   }
-  
+
   res.status(httpStatus.OK).json({
     sourceLanguage,
-    translationStatus: status
+    translationStatus: status,
   });
 });
 
@@ -133,31 +132,31 @@ const getTranslationStatus = catchAsync(async (req, res) => {
 const updateTranslations = catchAsync(async (req, res) => {
   const { language } = req.params;
   const { namespace = 'common', translations } = req.body;
-  
+
   if (!config.languages.includes(language)) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid language code');
   }
-  
+
   if (!translations || typeof translations !== 'object') {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid translations format');
   }
-  
+
   // In a real implementation, this would update the translation files
   // For this API, we'll just return success
-  
+
   // Track translation update
   await analyticsService.trackEvent('translations_updated', {
     userId: req.user.id,
     language,
     namespace,
-    keysCount: Object.keys(translations).length
+    keysCount: Object.keys(translations).length,
   });
-  
+
   res.status(httpStatus.OK).json({
     message: `Translations for ${getLanguageName(language)} updated successfully`,
     language,
     namespace,
-    updatedKeys: Object.keys(translations).length
+    updatedKeys: Object.keys(translations).length,
   });
 });
 
@@ -170,9 +169,9 @@ function getLanguageName(code) {
     en: 'English',
     fr: 'Français',
     de: 'Deutsch',
-    es: 'Español'
+    es: 'Español',
   };
-  
+
   return languageNames[code] || code;
 }
 
@@ -181,5 +180,5 @@ module.exports = {
   getNamespaces,
   translateContent,
   getTranslationStatus,
-  updateTranslations
+  updateTranslations,
 };

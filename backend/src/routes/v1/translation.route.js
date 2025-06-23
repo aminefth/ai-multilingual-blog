@@ -12,11 +12,7 @@ const router = express.Router();
  * Get all available languages
  * Public endpoint, cached for 1 day (86400 seconds)
  */
-router.get(
-  '/languages',
-  cacheMiddleware(86400),
-  translationController.getLanguages
-);
+router.get('/languages', cacheMiddleware(86400), translationController.getLanguages);
 
 /**
  * GET /v1/translations/namespaces
@@ -27,7 +23,7 @@ router.get(
   '/namespaces',
   validate(translationValidation.getNamespaces),
   cacheMiddleware(3600),
-  translationController.getNamespaces
+  translationController.getNamespaces,
 );
 
 /**
@@ -39,7 +35,7 @@ router.post(
   '/translate',
   auth('manageBlogPosts'),
   validate(translationValidation.translateContent),
-  translationController.translateContent
+  translationController.translateContent,
 );
 
 /**
@@ -51,7 +47,7 @@ router.get(
   '/status/:postId',
   auth('manageBlogPosts'),
   validate(translationValidation.getTranslationStatus),
-  translationController.getTranslationStatus
+  translationController.getTranslationStatus,
 );
 
 /**
@@ -63,7 +59,7 @@ router.put(
   '/:language',
   auth('manageTranslations'),
   validate(translationValidation.updateTranslations),
-  translationController.updateTranslations
+  translationController.updateTranslations,
 );
 
 module.exports = router;

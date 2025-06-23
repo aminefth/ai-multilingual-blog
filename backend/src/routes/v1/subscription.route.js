@@ -12,11 +12,7 @@ const router = express.Router();
  * Get all available subscription plans
  * Public endpoint, cached for 1 day (86400 seconds)
  */
-router.get(
-  '/plans',
-  cacheMiddleware(86400),
-  subscriptionController.getSubscriptionPlans
-);
+router.get('/plans', cacheMiddleware(86400), subscriptionController.getSubscriptionPlans);
 
 /**
  * POST /v1/subscriptions/checkout-session
@@ -27,7 +23,7 @@ router.post(
   '/checkout-session',
   auth(),
   validate(subscriptionValidation.createCheckoutSession),
-  subscriptionController.createCheckoutSession
+  subscriptionController.createCheckoutSession,
 );
 
 /**
@@ -35,11 +31,7 @@ router.post(
  * Get subscription details for current user
  * Private endpoint (requires authentication)
  */
-router.get(
-  '/my-subscription',
-  auth(),
-  subscriptionController.getUserSubscription
-);
+router.get('/my-subscription', auth(), subscriptionController.getUserSubscription);
 
 /**
  * POST /v1/subscriptions/cancel
@@ -50,7 +42,7 @@ router.post(
   '/cancel',
   auth(),
   validate(subscriptionValidation.cancelSubscription),
-  subscriptionController.cancelSubscription
+  subscriptionController.cancelSubscription,
 );
 
 /**
@@ -61,7 +53,7 @@ router.post(
 router.post(
   '/webhook',
   validate(subscriptionValidation.handleStripeWebhook),
-  subscriptionController.handleStripeWebhook
+  subscriptionController.handleStripeWebhook,
 );
 
 /**
@@ -73,7 +65,7 @@ router.post(
   '/portal-session',
   auth(),
   validate(subscriptionValidation.createPortalSession),
-  subscriptionController.createPortalSession
+  subscriptionController.createPortalSession,
 );
 
 /**
@@ -81,44 +73,28 @@ router.post(
  * Reactivate a canceled subscription
  * Private endpoint (requires authentication)
  */
-router.post(
-  '/reactivate',
-  auth(),
-  subscriptionController.reactivateSubscription
-);
+router.post('/reactivate', auth(), subscriptionController.reactivateSubscription);
 
 /**
  * GET /v1/subscriptions/upcoming-invoice
  * Get upcoming invoice for current user's subscription
  * Private endpoint (requires authentication)
  */
-router.get(
-  '/upcoming-invoice',
-  auth(),
-  subscriptionController.getUpcomingInvoice
-);
+router.get('/upcoming-invoice', auth(), subscriptionController.getUpcomingInvoice);
 
 /**
  * GET /v1/subscriptions/payment-methods
  * Get payment methods for current user
  * Private endpoint (requires authentication)
  */
-router.get(
-  '/payment-methods',
-  auth(),
-  subscriptionController.getPaymentMethods
-);
+router.get('/payment-methods', auth(), subscriptionController.getPaymentMethods);
 
 /**
  * GET /v1/subscriptions/invoices
  * Get invoice history for current user
  * Private endpoint (requires authentication)
  */
-router.get(
-  '/invoices',
-  auth(),
-  subscriptionController.getInvoiceHistory
-);
+router.get('/invoices', auth(), subscriptionController.getInvoiceHistory);
 
 /**
  * POST /v1/subscriptions/apply-discount
@@ -129,7 +105,7 @@ router.post(
   '/apply-discount',
   auth(),
   validate(subscriptionValidation.applyDiscount),
-  subscriptionController.applyDiscount
+  subscriptionController.applyDiscount,
 );
 
 /**
@@ -141,7 +117,7 @@ router.put(
   '/update',
   auth(),
   validate(subscriptionValidation.updateSubscription),
-  subscriptionController.updateSubscription
+  subscriptionController.updateSubscription,
 );
 
 module.exports = router;

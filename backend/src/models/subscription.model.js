@@ -22,7 +22,7 @@ const priceSchema = mongoose.Schema(
       default: 'month',
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const featureSchema = mongoose.Schema(
@@ -38,7 +38,7 @@ const featureSchema = mongoose.Schema(
     },
     limit: Number,
   },
-  { _id: false }
+  { _id: false },
 );
 
 const subscriptionSchema = mongoose.Schema(
@@ -79,40 +79,48 @@ const subscriptionSchema = mongoose.Schema(
       en: {
         name: String,
         description: String,
-        features: [{
-          name: String,
-          description: String
-        }],
+        features: [
+          {
+            name: String,
+            description: String,
+          },
+        ],
       },
       fr: {
         name: String,
         description: String,
-        features: [{
-          name: String,
-          description: String
-        }],
+        features: [
+          {
+            name: String,
+            description: String,
+          },
+        ],
       },
       de: {
         name: String,
         description: String,
-        features: [{
-          name: String,
-          description: String
-        }],
+        features: [
+          {
+            name: String,
+            description: String,
+          },
+        ],
       },
       es: {
         name: String,
         description: String,
-        features: [{
-          name: String,
-          description: String
-        }],
+        features: [
+          {
+            name: String,
+            description: String,
+          },
+        ],
       },
     },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // add plugin that converts mongoose to json
@@ -145,7 +153,7 @@ subscriptionSchema.methods.getFeaturesInLanguage = function (lang = 'en') {
   if (!this.translations || !this.translations[lang]) {
     return this.features;
   }
-  
+
   const localizedFeatures = this.translations[lang].features || [];
   return this.features.map((feature, index) => {
     const localizedFeature = localizedFeatures[index] || {};

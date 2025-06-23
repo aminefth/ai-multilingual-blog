@@ -5,6 +5,7 @@ const { User } = require('../models');
 const stripe = require('../config/stripe');
 const config = require('../config/config');
 const analyticsService = require('../services/analytics.service');
+const logger = require('../utils/logger');
 
 /**
  * Subscription Controller for managing Stripe-based billing
@@ -15,7 +16,7 @@ const analyticsService = require('../services/analytics.service');
  * @route GET /v1/subscriptions/plans
  * @access Public
  */
-const getSubscriptionPlans = catchAsync(async (req, res) => {
+const getSubscriptionPlans = catchAsync(async (_req, res) => {
   const plans = [
     {
       id: config.stripe.monthlyPlanId,
@@ -28,8 +29,8 @@ const getSubscriptionPlans = catchAsync(async (req, res) => {
         'Full access to premium articles',
         'Early access to new content',
         'Ad-free reading experience',
-        'Monthly newsletter'
-      ]
+        'Monthly newsletter',
+      ],
     },
     {
       id: config.stripe.yearlyPlanId,
@@ -44,9 +45,9 @@ const getSubscriptionPlans = catchAsync(async (req, res) => {
         'Ad-free reading experience',
         'Monthly newsletter',
         'Exclusive webinars',
-        '24/7 Priority support'
-      ]
-    }
+        '24/7 Priority support',
+      ],
+    },
   ];
 
   res.status(httpStatus.OK).json(plans);
@@ -62,10 +63,7 @@ const createCheckoutSession = catchAsync(async (req, res) => {
   const userId = req.user.id;
 
   // Verify plan exists
-  if (
-    planId !== config.stripe.monthlyPlanId && 
-    planId !== config.stripe.yearlyPlanId
-  ) {
+  if (planId !== config.stripe.monthlyPlanId && planId !== config.stripe.yearlyPlanId) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid plan selected');
   }
 
@@ -77,10 +75,7 @@ const createCheckoutSession = catchAsync(async (req, res) => {
 
   // Check if user already has an active subscription
   if (user.subscription && user.subscription.status === 'active') {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      'You already have an active subscription'
-    );
+    throw new ApiError(httpStatus.BAD_REQUEST, 'You already have an active subscription');
   }
 
   // Create or get Stripe customer
@@ -92,12 +87,12 @@ const createCheckoutSession = catchAsync(async (req, res) => {
       email: user.email,
       name: user.name,
       metadata: {
-        userId: user.id
-      }
+        userId: user.id,
+      },
     });
-    
+
     customerId = customer.id;
-    
+
     // Save Stripe customer ID in user profile
     user.stripeCustomerId = customerId;
     await user.save();
@@ -107,20 +102,21 @@ const createCheckoutSession = catchAsync(async (req, res) => {
   const checkoutSession = await stripe.createCheckoutSession({
     customerId,
     priceId: planId,
-    successUrl: successUrl || `${config.frontendUrl}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancelUrl: cancelUrl || `${config.frontendUrl}/subscription/cancel`
+    successUrl:
+      successUrl || `${config.frontendUrl}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancelUrl: cancelUrl || `${config.frontendUrl}/subscription/cancel`,
   });
 
   // Track event for analytics
   await analyticsService.trackEvent('subscription_checkout_initiated', {
     userId,
     planId,
-    sessionId: checkoutSession.id
+    sessionId: checkoutSession.id,
   });
 
   res.status(httpStatus.OK).json({
     sessionId: checkoutSession.id,
-    url: checkoutSession.url
+    url: checkoutSession.url,
   });
 });
 
@@ -139,11 +135,11 @@ const getUserSubscription = catchAsync(async (req, res) => {
   }
 
   // If user has Stripe customer ID and subscription ID, get latest details
-  if (user.stripeCustomerId && user.subscription?.subscriptionId) {
+  if (user.stripeCustomerId && user.subscription && user.subscription.subscriptionId) {
     try {
       // Get latest subscription details from Stripe
       const subscriptionDetails = await stripe.getSubscription(user.subscription.subscriptionId);
-      
+
       // Update subscription status in db if it has changed
       if (subscriptionDetails.status !== user.subscription.status) {
         user.subscription.status = subscriptionDetails.status;
@@ -157,17 +153,17 @@ const getUserSubscription = catchAsync(async (req, res) => {
           currentPeriodEnd: user.subscription.currentPeriodEnd,
           cancelAtPeriodEnd: subscriptionDetails.cancel_at_period_end,
         },
-        hasActiveSubscription: user.subscription.status === 'active'
+        hasActiveSubscription: user.subscription.status === 'active',
       });
     } catch (error) {
-      console.error('Error fetching subscription from Stripe:', error);
+      logger.error('Error fetching subscription from Stripe:', error);
     }
   }
 
   // Return empty subscription info if no subscription found
   res.status(httpStatus.OK).json({
     subscription: null,
-    hasActiveSubscription: false
+    hasActiveSubscription: false,
   });
 });
 
@@ -193,7 +189,7 @@ const cancelSubscription = catchAsync(async (req, res) => {
 
   // Cancel subscription in Stripe
   const subscriptionId = user.subscription.subscriptionId;
-  const result = await stripe.cancelSubscription(subscriptionId, !cancelImmediately);
+  await stripe.cancelSubscription(subscriptionId, !cancelImmediately);
 
   // Update user's subscription status
   user.subscription.status = cancelImmediately ? 'canceled' : 'active';
@@ -205,7 +201,7 @@ const cancelSubscription = catchAsync(async (req, res) => {
     userId,
     subscriptionId,
     cancelImmediately,
-    reason: req.body.reason || 'Not specified'
+    reason: req.body.reason || 'Not specified',
   });
 
   res.status(httpStatus.OK).json({
@@ -214,8 +210,8 @@ const cancelSubscription = catchAsync(async (req, res) => {
       : 'Subscription will be canceled at the end of the billing period',
     subscription: {
       status: user.subscription.status,
-      cancelAtPeriodEnd: user.subscription.cancelAtPeriodEnd
-    }
+      cancelAtPeriodEnd: user.subscription.cancelAtPeriodEnd,
+    },
   });
 });
 
@@ -232,38 +228,38 @@ const handleStripeWebhook = catchAsync(async (req, res) => {
 
   try {
     const event = stripe.constructEventFromPayload(signature, req.body);
-    
+
     // Handle the event based on its type
     switch (event.type) {
       case 'checkout.session.completed':
         await handleCheckoutSessionCompleted(event.data.object);
         break;
-      
+
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
         await handleSubscriptionUpdated(event.data.object);
         break;
-      
+
       case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(event.data.object);
         break;
-      
+
       case 'invoice.payment_succeeded':
         await handleInvoicePaymentSucceeded(event.data.object);
         break;
-      
+
       case 'invoice.payment_failed':
         await handleInvoicePaymentFailed(event.data.object);
         break;
-      
+
       default:
         // Unexpected event type
-        console.log(`Unhandled event type: ${event.type}`);
+        logger.error(`Unhandled event type: ${event.type}`);
     }
 
     res.status(httpStatus.OK).json({ received: true });
   } catch (err) {
-    console.error(`Webhook error: ${err.message}`);
+    logger.error(`Webhook error: ${err.message}`);
     throw new ApiError(httpStatus.BAD_REQUEST, `Webhook error: ${err.message}`);
   }
 });
@@ -285,12 +281,12 @@ const createPortalSession = catchAsync(async (req, res) => {
 
   // Create customer portal session
   const portalSession = await stripe.createCustomerPortalSession(
-    user.stripeCustomerId, 
-    returnUrl || `${config.frontendUrl}/account`
+    user.stripeCustomerId,
+    returnUrl || `${config.frontendUrl}/account`,
   );
 
   res.status(httpStatus.OK).json({
-    url: portalSession.url
+    url: portalSession.url,
   });
 });
 
@@ -302,49 +298,48 @@ async function handleCheckoutSessionCompleted(session) {
   // Extract the subscription ID from the session
   const subscriptionId = session.subscription;
   const customerId = session.customer;
-  
+
   if (!subscriptionId) {
-    console.error('No subscription ID found in checkout session');
+    logger.error('No subscription ID found in checkout session');
     return;
   }
-  
+
   try {
     // Get subscription details
     const subscription = await stripe.getSubscription(subscriptionId);
-    
+
     // Find user by Stripe customer ID
     const user = await User.findOne({ stripeCustomerId: customerId });
     if (!user) {
-      console.error('No user found with Stripe customer ID:', customerId);
+      logger.error('No user found with Stripe customer ID:', customerId);
       return;
     }
-    
+
     // Update user with subscription info
     user.subscription = {
       subscriptionId,
       planId: subscription.items.data[0].price.id,
       status: subscription.status,
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      cancelAtPeriodEnd: subscription.cancel_at_period_end
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
     };
-    
+
     // Add premium role to user if not already present
     if (!user.roles.includes('premium')) {
       user.roles.push('premium');
     }
-    
+
     await user.save();
-    
+
     // Track subscription event for analytics
     await analyticsService.trackEvent('subscription_created', {
       userId: user.id,
       subscriptionId,
       planId: user.subscription.planId,
-      status: subscription.status
+      status: subscription.status,
     });
-    
   } catch (error) {
-    console.error('Error handling checkout session completion:', error);
+    logger.error('Error handling checkout session completion:', error);
   }
 }
 
@@ -357,20 +352,19 @@ async function handleSubscriptionUpdated(subscription) {
     // Find user by subscription ID
     const user = await User.findOne({ 'subscription.subscriptionId': subscription.id });
     if (!user) {
-      console.error('No user found with subscription ID:', subscription.id);
       return;
     }
-    
+
     // Update user subscription info
     user.subscription.status = subscription.status;
     user.subscription.currentPeriodEnd = new Date(subscription.current_period_end * 1000);
     user.subscription.cancelAtPeriodEnd = subscription.cancel_at_period_end;
-    
+
     // If plan ID changed, update that too
     if (subscription.items.data[0].price.id !== user.subscription.planId) {
       user.subscription.planId = subscription.items.data[0].price.id;
     }
-    
+
     // Handle subscription status
     if (subscription.status === 'active') {
       // Ensure user has premium role
@@ -379,22 +373,21 @@ async function handleSubscriptionUpdated(subscription) {
       }
     } else if (['canceled', 'unpaid', 'past_due'].includes(subscription.status)) {
       // Remove premium role if subscription is inactive
-      user.roles = user.roles.filter(role => role !== 'premium');
+      user.roles = user.roles.filter((role) => role !== 'premium');
     }
-    
+
     await user.save();
-    
+
     // Track subscription event
     await analyticsService.trackEvent('subscription_updated', {
       userId: user.id,
       subscriptionId: subscription.id,
       planId: user.subscription.planId,
       status: subscription.status,
-      cancelAtPeriodEnd: subscription.cancel_at_period_end
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
     });
-    
   } catch (error) {
-    console.error('Error handling subscription update:', error);
+    logger.error('Error handling subscription update:', error);
   }
 }
 
@@ -407,26 +400,25 @@ async function handleSubscriptionDeleted(subscription) {
     // Find user by subscription ID
     const user = await User.findOne({ 'subscription.subscriptionId': subscription.id });
     if (!user) {
-      console.error('No user found with subscription ID:', subscription.id);
+      logger.error('No user found with subscription ID:', subscription.id);
       return;
     }
-    
+
     // Update user subscription status
     user.subscription.status = 'canceled';
-    
+
     // Remove premium role
-    user.roles = user.roles.filter(role => role !== 'premium');
-    
+    user.roles = user.roles.filter((role) => role !== 'premium');
+
     await user.save();
-    
+
     // Track subscription cancellation
     await analyticsService.trackEvent('subscription_deleted', {
       userId: user.id,
-      subscriptionId: subscription.id
+      subscriptionId: subscription.id,
     });
-    
   } catch (error) {
-    console.error('Error handling subscription deletion:', error);
+    logger.error('Error handling subscription deletion:', error);
   }
 }
 
@@ -438,25 +430,24 @@ async function handleInvoicePaymentSucceeded(invoice) {
   if (!invoice.subscription) {
     return; // Not subscription related
   }
-  
+
   try {
     // Find user by subscription ID
     const user = await User.findOne({ 'subscription.subscriptionId': invoice.subscription });
     if (!user) {
-      console.error('No user found with subscription ID:', invoice.subscription);
+      logger.error('No user found with subscription ID:', invoice.subscription);
       return;
     }
-    
+
     // Track payment
     await analyticsService.trackEvent('subscription_payment_succeeded', {
       userId: user.id,
       subscriptionId: invoice.subscription,
       amount: invoice.amount_paid / 100, // Convert from cents
-      currency: invoice.currency
+      currency: invoice.currency,
     });
-    
   } catch (error) {
-    console.error('Error handling invoice payment success:', error);
+    logger.error('Error handling invoice payment success:', error);
   }
 }
 
@@ -468,26 +459,25 @@ async function handleInvoicePaymentFailed(invoice) {
   if (!invoice.subscription) {
     return; // Not subscription related
   }
-  
+
   try {
     // Find user by subscription ID
     const user = await User.findOne({ 'subscription.subscriptionId': invoice.subscription });
     if (!user) {
-      console.error('No user found with subscription ID:', invoice.subscription);
+      logger.error('No user found with subscription ID:', invoice.subscription);
       return;
     }
-    
+
     // Track failed payment
     await analyticsService.trackEvent('subscription_payment_failed', {
       userId: user.id,
       subscriptionId: invoice.subscription,
       amount: invoice.amount_due / 100, // Convert from cents
       currency: invoice.currency,
-      failureMessage: invoice.last_payment_error?.message || 'Payment failed'
+      failureMessage: invoice.last_payment_error?.message || 'Payment failed',
     });
-    
   } catch (error) {
-    console.error('Error handling invoice payment failure:', error);
+    logger.error('Error handling invoice payment failure:', error);
   }
 }
 
@@ -516,7 +506,7 @@ const reactivateSubscription = catchAsync(async (req, res) => {
   }
 
   // Reactivate the subscription
-  const reactivated = await stripe.reactivateSubscription(user.subscription.subscriptionId);
+  await stripe.subscriptions.update(user.subscription.subscriptionId, {});
 
   // Update user record
   user.subscription.cancelAtPeriodEnd = false;
@@ -525,15 +515,15 @@ const reactivateSubscription = catchAsync(async (req, res) => {
   // Track event
   await analyticsService.trackEvent('subscription_reactivated', {
     userId,
-    subscriptionId: user.subscription.subscriptionId
+    subscriptionId: user.subscription.subscriptionId,
   });
 
   res.status(httpStatus.OK).json({
     message: 'Subscription successfully reactivated',
     subscription: {
       status: user.subscription.status,
-      cancelAtPeriodEnd: false
-    }
+      cancelAtPeriodEnd: false,
+    },
   });
 });
 
@@ -557,8 +547,8 @@ const getUpcomingInvoice = catchAsync(async (req, res) => {
 
   // Get upcoming invoice
   const invoice = await stripe.getUpcomingInvoice(
-    user.stripeCustomerId, 
-    user.subscription?.subscriptionId
+    user.stripeCustomerId,
+    user.subscription?.subscriptionId,
   );
 
   res.status(httpStatus.OK).json({
@@ -567,9 +557,10 @@ const getUpcomingInvoice = catchAsync(async (req, res) => {
       currency: invoice.currency,
       period_start: new Date(invoice.period_start * 1000),
       period_end: new Date(invoice.period_end * 1000),
-      next_payment_attempt: invoice.next_payment_attempt ? 
-        new Date(invoice.next_payment_attempt * 1000) : null
-    }
+      next_payment_attempt: invoice.next_payment_attempt
+        ? new Date(invoice.next_payment_attempt * 1000)
+        : null,
+    },
   });
 });
 
@@ -595,14 +586,14 @@ const getPaymentMethods = catchAsync(async (req, res) => {
   const paymentMethods = await stripe.getPaymentMethods(user.stripeCustomerId);
 
   res.status(httpStatus.OK).json({
-    payment_methods: paymentMethods.data.map(pm => ({
+    payment_methods: paymentMethods.data.map((pm) => ({
       id: pm.id,
       brand: pm.card.brand,
       last4: pm.card.last4,
       exp_month: pm.card.exp_month,
       exp_year: pm.card.exp_year,
-      is_default: pm.id === user.subscription?.defaultPaymentMethodId
-    }))
+      is_default: pm.id === user.subscription?.defaultPaymentMethodId,
+    })),
   });
 });
 
@@ -628,15 +619,15 @@ const getInvoiceHistory = catchAsync(async (req, res) => {
   const invoices = await stripe.getInvoices(user.stripeCustomerId);
 
   res.status(httpStatus.OK).json({
-    invoices: invoices.data.map(invoice => ({
+    invoices: invoices.data.map((invoice) => ({
       id: invoice.id,
       amount_paid: invoice.amount_paid / 100, // Convert from cents
       currency: invoice.currency,
       status: invoice.status,
       created: new Date(invoice.created * 1000),
       invoice_pdf: invoice.invoice_pdf,
-      hosted_invoice_url: invoice.hosted_invoice_url
-    }))
+      hosted_invoice_url: invoice.hosted_invoice_url,
+    })),
   });
 });
 
@@ -664,12 +655,12 @@ const applyDiscount = catchAsync(async (req, res) => {
   }
 
   // Apply discount
-  const result = await stripe.applyDiscount(user.stripeCustomerId, couponId);
+  const result = await stripe.customers.update(user.stripeCustomerId, { coupon: couponId });
 
   // Track event
   await analyticsService.trackEvent('discount_applied', {
     userId,
-    couponId
+    couponId,
   });
 
   res.status(httpStatus.OK).json({
@@ -678,8 +669,8 @@ const applyDiscount = catchAsync(async (req, res) => {
       coupon: result.discount?.coupon?.id,
       percent_off: result.discount?.coupon?.percent_off,
       amount_off: result.discount?.coupon?.amount_off,
-      currency: result.discount?.coupon?.currency
-    }
+      currency: result.discount?.coupon?.currency,
+    },
   });
 });
 
@@ -697,10 +688,7 @@ const updateSubscription = catchAsync(async (req, res) => {
   }
 
   // Verify plan exists
-  if (
-    newPlanId !== config.stripe.monthlyPlanId && 
-    newPlanId !== config.stripe.yearlyPlanId
-  ) {
+  if (newPlanId !== config.stripe.monthlyPlanId && newPlanId !== config.stripe.yearlyPlanId) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid plan selected');
   }
 
@@ -722,8 +710,8 @@ const updateSubscription = catchAsync(async (req, res) => {
 
   // Update the subscription
   const updatedSubscription = await stripe.updateSubscription(
-    user.subscription.subscriptionId, 
-    newPlanId
+    user.subscription.subscriptionId,
+    newPlanId,
   );
 
   // Update user record
@@ -734,7 +722,7 @@ const updateSubscription = catchAsync(async (req, res) => {
   await analyticsService.trackEvent('subscription_plan_changed', {
     userId,
     oldPlanId: user.subscription.planId,
-    newPlanId
+    newPlanId,
   });
 
   res.status(httpStatus.OK).json({
@@ -742,8 +730,8 @@ const updateSubscription = catchAsync(async (req, res) => {
     subscription: {
       planId: newPlanId,
       status: updatedSubscription.status,
-      current_period_end: new Date(updatedSubscription.current_period_end * 1000)
-    }
+      current_period_end: new Date(updatedSubscription.current_period_end * 1000),
+    },
   });
 });
 
@@ -759,5 +747,5 @@ module.exports = {
   getPaymentMethods,
   getInvoiceHistory,
   applyDiscount,
-  updateSubscription
+  updateSubscription,
 };

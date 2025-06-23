@@ -18,62 +18,57 @@ const { cache } = require('../config/redis');
 const generateSEOMetadata = catchAsync(async (req, res) => {
   const { postId } = req.params;
   const { language } = req.query;
-  
+
   const post = await BlogPost.findById(postId);
   if (!post) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Blog post not found');
   }
-  
+
   // Choose appropriate content based on language
   let content = post.content;
   let title = post.title;
-  
-  if (language && language !== post.language && 
-      post.translations && post.translations[language]) {
+
+  if (language && language !== post.language && post.translations && post.translations[language]) {
     content = post.translations[language].content;
     title = post.translations[language].title;
   }
-  
+
   // Track SEO generation attempt
   await analyticsService.trackEvent('seo_generation', {
     userId: req.user.id,
     postId: post._id,
-    language: language || post.language
+    language: language || post.language,
   });
-  
+
   // Generate SEO metadata using AI
   const seoMetadata = await aiService.generateSEO(title, content);
-  
+
   // Prepare update object
   const updateData = {};
-  
+
   // If we're dealing with the primary language
   if (!language || language === post.language) {
     updateData.metaTitle = seoMetadata.title;
     updateData.metaDescription = seoMetadata.description;
     updateData.keywords = seoMetadata.keywords;
-  } 
+  }
   // If we're dealing with a translation
   else if (post.translations && post.translations[language]) {
     if (!post.translations[language].meta) {
       post.translations[language].meta = {};
     }
-    
+
     updateData[`translations.${language}.meta.title`] = seoMetadata.title;
     updateData[`translations.${language}.meta.description`] = seoMetadata.description;
     updateData[`translations.${language}.meta.keywords`] = seoMetadata.keywords;
   }
-  
+
   // Update the post with new SEO metadata
-  const updatedPost = await BlogPost.findByIdAndUpdate(
-    postId,
-    { $set: updateData },
-    { new: true }
-  );
-  
+  await BlogPost.findByIdAndUpdate(postId, { $set: updateData }, { new: true });
+
   res.status(httpStatus.OK).json({
     message: 'SEO metadata generated successfully',
-    seoMetadata
+    seoMetadata,
   });
 });
 
@@ -85,57 +80,56 @@ const generateSEOMetadata = catchAsync(async (req, res) => {
 const updateSEOMetadata = catchAsync(async (req, res) => {
   const { postId } = req.params;
   const { metaTitle, metaDescription, keywords, language, canonicalUrl } = req.body;
-  
+
   const post = await BlogPost.findById(postId);
   if (!post) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Blog post not found');
   }
-  
+
   // Prepare update object
   const updateData = {};
-  
+
   // If we're dealing with the primary language
   if (!language || language === post.language) {
     if (metaTitle) updateData.metaTitle = metaTitle;
     if (metaDescription) updateData.metaDescription = metaDescription;
     if (keywords) updateData.keywords = keywords;
     if (canonicalUrl) updateData.canonicalUrl = canonicalUrl;
-  } 
+  }
   // If we're dealing with a translation
   else if (post.translations && post.translations[language]) {
     if (metaTitle) updateData[`translations.${language}.meta.title`] = metaTitle;
     if (metaDescription) updateData[`translations.${language}.meta.description`] = metaDescription;
     if (keywords) updateData[`translations.${language}.meta.keywords`] = keywords;
   }
-  
+
   // Update the post with new SEO metadata
-  const updatedPost = await BlogPost.findByIdAndUpdate(
-    postId,
-    { $set: updateData },
-    { new: true }
-  );
-  
+  const updatedPost = await BlogPost.findByIdAndUpdate(postId, { $set: updateData }, { new: true });
+
   // Clear cache for this post
   await cache.del(`cache:/api/v1/blog/${post._id}`);
   await cache.del(`cache:/api/v1/blog/slug/${post.slug}`);
-  
+
   res.status(httpStatus.OK).json({
     message: 'SEO metadata updated successfully',
     post: {
       id: updatedPost._id,
       title: updatedPost.title,
       slug: updatedPost.slug,
-      metaTitle: language && language !== post.language 
-        ? updatedPost.translations?.[language]?.meta?.title 
-        : updatedPost.metaTitle,
-      metaDescription: language && language !== post.language 
-        ? updatedPost.translations?.[language]?.meta?.description 
-        : updatedPost.metaDescription,
-      keywords: language && language !== post.language 
-        ? updatedPost.translations?.[language]?.meta?.keywords 
-        : updatedPost.keywords,
-      canonicalUrl: updatedPost.canonicalUrl
-    }
+      metaTitle:
+        language && language !== post.language
+          ? updatedPost.translations?.[language]?.meta?.title
+          : updatedPost.metaTitle,
+      metaDescription:
+        language && language !== post.language
+          ? updatedPost.translations?.[language]?.meta?.description
+          : updatedPost.metaDescription,
+      keywords:
+        language && language !== post.language
+          ? updatedPost.translations?.[language]?.meta?.keywords
+          : updatedPost.keywords,
+      canonicalUrl: updatedPost.canonicalUrl,
+    },
   });
 });
 
@@ -147,12 +141,12 @@ const updateSEOMetadata = catchAsync(async (req, res) => {
 const getSEOMetadata = catchAsync(async (req, res) => {
   const { postId } = req.params;
   const { language } = req.query;
-  
+
   const post = await BlogPost.findById(postId);
   if (!post) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Blog post not found');
   }
-  
+
   let seoData = {
     title: post.title,
     slug: post.slug,
@@ -160,12 +154,11 @@ const getSEOMetadata = catchAsync(async (req, res) => {
     metaDescription: post.metaDescription,
     keywords: post.keywords || [],
     canonicalUrl: post.canonicalUrl,
-    language: post.language || 'en'
+    language: post.language || 'en',
   };
-  
+
   // If requesting translation SEO data
-  if (language && language !== post.language && 
-      post.translations && post.translations[language]) {
+  if (language && language !== post.language && post.translations && post.translations[language]) {
     const translation = post.translations[language];
     seoData = {
       title: translation.title || post.title,
@@ -174,10 +167,10 @@ const getSEOMetadata = catchAsync(async (req, res) => {
       metaDescription: translation.meta?.description || post.metaDescription,
       keywords: translation.meta?.keywords || post.keywords || [],
       canonicalUrl: post.canonicalUrl,
-      language
+      language,
     };
   }
-  
+
   res.status(httpStatus.OK).json(seoData);
 });
 
@@ -189,7 +182,7 @@ const getSEOMetadata = catchAsync(async (req, res) => {
 const getSiteSEOSettings = catchAsync(async (req, res) => {
   // In a real implementation, this would fetch from a settings collection
   // Here we're returning default values
-  
+
   const settings = {
     siteName: 'AI Tools Blog',
     siteDescription: 'The latest reviews and insights on AI tools for businesses and entrepreneurs',
@@ -206,11 +199,11 @@ const getSiteSEOSettings = catchAsync(async (req, res) => {
       potentialAction: {
         '@type': 'SearchAction',
         target: 'https://aitoolsblog.com/search?q={search_term_string}',
-        'query-input': 'required name=search_term_string'
-      }
-    }
+        'query-input': 'required name=search_term_string',
+      },
+    },
   };
-  
+
   res.status(httpStatus.OK).json(settings);
 });
 
@@ -220,38 +213,38 @@ const getSiteSEOSettings = catchAsync(async (req, res) => {
  * @access Private (requires admin permission)
  */
 const updateSiteSEOSettings = catchAsync(async (req, res) => {
-  const { 
-    siteName, 
-    siteDescription, 
+  const {
+    siteName,
+    siteDescription,
     defaultOgImage,
     googleAnalyticsId,
     googleSiteVerification,
     bingSiteVerification,
     robots,
-    structuredData
+    structuredData,
   } = req.body;
-  
+
   // In a real implementation, this would update a settings collection
   // Here we just acknowledge the request
-  
+
   // Track settings update
   await analyticsService.trackEvent('seo_settings_updated', {
     userId: req.user.id,
-    updatedFields: Object.keys(req.body)
+    updatedFields: Object.keys(req.body),
   });
-  
+
   res.status(httpStatus.OK).json({
     message: 'SEO settings updated successfully',
     settings: {
-      siteName, 
-      siteDescription, 
+      siteName,
+      siteDescription,
       defaultOgImage,
       googleAnalyticsId,
       googleSiteVerification,
       bingSiteVerification,
       robots,
-      structuredData
-    }
+      structuredData,
+    },
   });
 });
 
@@ -260,5 +253,5 @@ module.exports = {
   updateSEOMetadata,
   getSEOMetadata,
   getSiteSEOSettings,
-  updateSiteSEOSettings
+  updateSiteSEOSettings,
 };

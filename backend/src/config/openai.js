@@ -1,5 +1,6 @@
 const OpenAI = require('openai');
 const config = require('./config');
+const logger = require('../utils/logger');
 
 // Initialize OpenAI client with API key from environment variables
 const openai = new OpenAI({
@@ -19,8 +20,15 @@ const openai = new OpenAI({
  */
 const generateBlogContent = async (options) => {
   try {
-    const { topic, title, keywords, tone = 'professional', wordCount = 1000, language = 'en' } = options;
-    
+    const {
+      topic,
+      title,
+      keywords,
+      tone = 'professional',
+      wordCount = 1000,
+      language = 'en',
+    } = options;
+
     // Define language-specific prompts
     const languagePrompt = {
       en: 'Write in English',
@@ -28,7 +36,7 @@ const generateBlogContent = async (options) => {
       de: 'Schreiben Sie auf Deutsch (Write in German)',
       es: 'Escribe en español (Write in Spanish)',
     };
-    
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
@@ -50,10 +58,10 @@ const generateBlogContent = async (options) => {
       temperature: 0.7,
       max_tokens: Math.min(4000, Math.ceil(wordCount * 1.5)),
     });
-    
+
     return completion.choices[0].message.content;
   } catch (error) {
-    console.error('Error generating blog content:', error);
+    logger.error('Error generating blog content:', error);
     throw error;
   }
 };
@@ -73,7 +81,7 @@ const generateMetaDescription = async (content, language = 'en') => {
       de: 'Schreiben Sie auf Deutsch (Write in German)',
       es: 'Escribe en español (Write in Spanish)',
     };
-    
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
@@ -91,10 +99,10 @@ const generateMetaDescription = async (content, language = 'en') => {
       temperature: 0.7,
       max_tokens: 200,
     });
-    
+
     return completion.choices[0].message.content;
   } catch (error) {
-    console.error('Error generating meta description:', error);
+    logger.error('Error generating meta description:', error);
     throw error;
   }
 };
@@ -115,7 +123,7 @@ const translateContent = async (content, title, sourceLanguage = 'en', targetLan
       de: 'German',
       es: 'Spanish',
     };
-    
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4',
       messages: [
@@ -138,12 +146,12 @@ const translateContent = async (content, title, sourceLanguage = 'en', targetLan
       ],
       temperature: 0.3,
       max_tokens: Math.min(4000, content.length * 1.5),
-      response_format: { type: "json_object" },
+      response_format: { type: 'json_object' },
     });
-    
+
     return JSON.parse(completion.choices[0].message.content);
   } catch (error) {
-    console.error('Error translating content:', error);
+    logger.error('Error translating content:', error);
     throw error;
   }
 };

@@ -14,7 +14,15 @@ const subscriptionSchema = mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['active', 'past_due', 'unpaid', 'canceled', 'incomplete', 'incomplete_expired', 'trialing'],
+      enum: [
+        'active',
+        'past_due',
+        'unpaid',
+        'canceled',
+        'incomplete',
+        'incomplete_expired',
+        'trialing',
+      ],
       default: 'active',
     },
     stripeCustomerId: {
@@ -32,7 +40,7 @@ const subscriptionSchema = mongoose.Schema(
       default: false,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const affiliateStatsSchema = mongoose.Schema(
@@ -52,7 +60,7 @@ const affiliateStatsSchema = mongoose.Schema(
     lastClickDate: Date,
     lastConversionDate: Date,
   },
-  { _id: false }
+  { _id: false },
 );
 
 const userSchema = mongoose.Schema(
@@ -87,7 +95,7 @@ const userSchema = mongoose.Schema(
       },
       private: true, // used by the toJSON plugin
     },
-    
+
     // Profile
     avatar: String,
     bio: {
@@ -105,20 +113,20 @@ const userSchema = mongoose.Schema(
     },
     company: String,
     position: String,
-    
+
     // Preferences
     preferredLanguage: {
       type: String,
       enum: ['en', 'fr', 'de', 'es'],
       default: 'en',
     },
-    
+
     // Subscription
     subscription: {
       type: subscriptionSchema,
       default: () => ({}),
     },
-    
+
     // Affiliate program
     affiliateCode: {
       type: String,
@@ -136,7 +144,7 @@ const userSchema = mongoose.Schema(
       },
       private: true,
     },
-    
+
     // Access control
     role: {
       type: String,
@@ -155,7 +163,7 @@ const userSchema = mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // add plugin that converts mongoose to json
@@ -196,12 +204,12 @@ userSchema.methods.isPasswordMatch = async function (password) {
 
 userSchema.pre('save', async function (next) {
   const user = this;
-  
+
   // Hash password if modified
   if (user.isModified('password')) {
     user.password = await bcrypt.hash(user.password, 8);
   }
-  
+
   // Generate affiliate code if not set and user is verified
   if (!user.affiliateCode && user.isEmailVerified) {
     const randomString = crypto.randomBytes(8).toString('hex');
@@ -211,12 +219,12 @@ userSchema.pre('save', async function (next) {
       user.affiliateCode = randomString;
     }
   }
-  
+
   // Set lastLogin if it's a new user
   if (user.isNew) {
     user.lastLogin = new Date();
   }
-  
+
   next();
 });
 
@@ -224,7 +232,7 @@ userSchema.pre('save', async function (next) {
  * Record user login
  * @returns {Promise<void>}
  */
-userSchema.methods.recordLogin = async function() {
+userSchema.methods.recordLogin = async function () {
   this.lastLogin = new Date();
   return this.save();
 };
@@ -233,7 +241,7 @@ userSchema.methods.recordLogin = async function() {
  * Track affiliate click
  * @returns {Promise<void>}
  */
-userSchema.methods.trackAffiliateClick = async function() {
+userSchema.methods.trackAffiliateClick = async function () {
   this.affiliateStats.clicks += 1;
   this.affiliateStats.lastClickDate = new Date();
   return this.save();
@@ -244,7 +252,7 @@ userSchema.methods.trackAffiliateClick = async function() {
  * @param {number} amount - Amount of revenue generated
  * @returns {Promise<void>}
  */
-userSchema.methods.trackAffiliateConversion = async function(amount) {
+userSchema.methods.trackAffiliateConversion = async function (amount) {
   this.affiliateStats.conversions += 1;
   this.affiliateStats.revenue += amount;
   this.affiliateStats.lastConversionDate = new Date();

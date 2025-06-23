@@ -16,18 +16,12 @@ const analyticsService = require('../services/analytics.service');
  */
 const getDashboardData = catchAsync(async (req, res) => {
   // Get counts and stats from different collections
-  const [
-    userCount,
-    postCount,
-    draftCount,
-    publishedCount,
-    revenueStats
-  ] = await Promise.all([
+  const [userCount, postCount, draftCount, publishedCount, revenueStats] = await Promise.all([
     User.countDocuments(),
     BlogPost.countDocuments(),
     BlogPost.countDocuments({ status: 'draft' }),
     BlogPost.countDocuments({ status: 'published' }),
-    analyticsService.getRevenueStats('30d')
+    analyticsService.getRevenueStats('30d'),
   ]);
 
   // Get recently joined users
@@ -35,7 +29,7 @@ const getDashboardData = catchAsync(async (req, res) => {
     .sort({ createdAt: -1 })
     .limit(5)
     .select('name email roles createdAt');
-  
+
   // Get recently published posts
   const recentPosts = await BlogPost.find({ status: 'published' })
     .sort({ publishedAt: -1 })
@@ -52,26 +46,26 @@ const getDashboardData = catchAsync(async (req, res) => {
       revenue: {
         total: revenueStats.total,
         affiliate: revenueStats.affiliate,
-        subscription: revenueStats.subscription
-      }
+        subscription: revenueStats.subscription,
+      },
     },
     recent: {
-      users: recentUsers.map(user => ({
+      users: recentUsers.map((user) => ({
         id: user._id,
         name: user.name,
         email: user.email,
         roles: user.roles,
-        joinedAt: user.createdAt
+        joinedAt: user.createdAt,
       })),
-      posts: recentPosts.map(post => ({
+      posts: recentPosts.map((post) => ({
         id: post._id,
         title: post.title,
         author: post.author,
         status: post.status,
         publishedAt: post.publishedAt,
-        views: post.views || 0
-      }))
-    }
+        views: post.views || 0,
+      })),
+    },
   };
 
   res.status(httpStatus.OK).json(dashboard);
@@ -83,14 +77,7 @@ const getDashboardData = catchAsync(async (req, res) => {
  * @access Private (requires admin permission)
  */
 const getUsers = catchAsync(async (req, res) => {
-  const { 
-    page = 1,
-    limit = 10,
-    sortBy = 'createdAt:desc',
-    name,
-    email,
-    role
-  } = req.query;
+  const { page = 1, limit = 10, sortBy = 'createdAt:desc', name, email, role } = req.query;
 
   // Prepare filter
   const filter = {};
@@ -104,14 +91,10 @@ const getUsers = catchAsync(async (req, res) => {
 
   // Execute query with pagination
   const skip = (Number(page) - 1) * Number(limit);
-  
+
   const [users, totalUsers] = await Promise.all([
-    User.find(filter)
-      .sort(sort)
-      .skip(skip)
-      .limit(Number(limit))
-      .select('-password'),
-    User.countDocuments(filter)
+    User.find(filter).sort(sort).skip(skip).limit(Number(limit)).select('-password'),
+    User.countDocuments(filter),
   ]);
 
   // Calculate pagination info
@@ -127,8 +110,8 @@ const getUsers = catchAsync(async (req, res) => {
       totalUsers,
       totalPages,
       hasNext,
-      hasPrev
-    }
+      hasPrev,
+    },
   });
 });
 
@@ -147,13 +130,8 @@ const updateUserRoles = catchAsync(async (req, res) => {
   }
 
   // Don't allow removing admin role from yourself
-  if (req.user.id === userId && 
-      user.roles.includes('admin') && 
-      !roles.includes('admin')) {
-    throw new ApiError(
-      httpStatus.FORBIDDEN,
-      'Cannot remove admin role from yourself'
-    );
+  if (req.user.id === userId && user.roles.includes('admin') && !roles.includes('admin')) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'Cannot remove admin role from yourself');
   }
 
   // Update roles
@@ -164,7 +142,7 @@ const updateUserRoles = catchAsync(async (req, res) => {
   await analyticsService.trackEvent('user_roles_updated', {
     adminId: req.user.id,
     userId: user.id,
-    updatedRoles: roles
+    updatedRoles: roles,
   });
 
   res.status(httpStatus.OK).json({
@@ -172,8 +150,8 @@ const updateUserRoles = catchAsync(async (req, res) => {
       id: user._id,
       name: user.name,
       email: user.email,
-      roles: user.roles
-    }
+      roles: user.roles,
+    },
   });
 });
 
@@ -201,10 +179,7 @@ const updateApprovalStatus = catchAsync(async (req, res) => {
   const { status, feedbackNote } = req.body;
 
   if (!['published', 'rejected'].includes(status)) {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      'Status must be either "published" or "rejected"'
-    );
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Status must be either "published" or "rejected"');
   }
 
   const post = await BlogPost.findById(postId);
@@ -213,22 +188,19 @@ const updateApprovalStatus = catchAsync(async (req, res) => {
   }
 
   if (post.status !== 'pending') {
-    throw new ApiError(
-      httpStatus.BAD_REQUEST,
-      'Only pending posts can be approved or rejected'
-    );
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Only pending posts can be approved or rejected');
   }
 
   // Update post status
   post.status = status;
-  
+
   // Add feedback note if provided
   if (feedbackNote) {
     if (!post.notes) post.notes = [];
     post.notes.push({
       author: req.user.id,
       content: feedbackNote,
-      createdAt: new Date()
+      createdAt: new Date(),
     });
   }
 
@@ -247,7 +219,7 @@ const updateApprovalStatus = catchAsync(async (req, res) => {
     adminId: req.user.id,
     postId: post._id,
     status,
-    hasFeedback: !!feedbackNote
+    hasFeedback: !!feedbackNote,
   });
 
   res.status(httpStatus.OK).json({
@@ -256,8 +228,8 @@ const updateApprovalStatus = catchAsync(async (req, res) => {
       id: post._id,
       title: post.title,
       status: post.status,
-      publishedAt: post.publishedAt
-    }
+      publishedAt: post.publishedAt,
+    },
   });
 });
 
@@ -269,10 +241,10 @@ const updateApprovalStatus = catchAsync(async (req, res) => {
 const getSystemSettings = catchAsync(async (req, res) => {
   // This would typically come from a settings collection in the database
   // For this implementation, we'll use cached or default settings
-  
+
   const cacheKey = 'system:settings';
   let settings = await cache.get(cacheKey);
-  
+
   if (!settings) {
     // Default settings
     settings = {
@@ -280,37 +252,37 @@ const getSystemSettings = catchAsync(async (req, res) => {
         siteName: 'AI Tools Blog',
         siteDescription: 'The best AI tools reviews and guides',
         contactEmail: 'admin@example.com',
-        defaultLanguage: 'en'
+        defaultLanguage: 'en',
       },
       seo: {
         defaultTitle: '{pageName} | AI Tools Blog',
         defaultDescription: 'Discover the latest AI tools and how to use them effectively',
         defaultKeywords: 'ai tools, machine learning, artificial intelligence',
         googleAnalyticsId: '',
-        facebookPixelId: ''
+        facebookPixelId: '',
       },
       content: {
         postsPerPage: 10,
         maxRelatedPosts: 3,
         defaultFeaturedImage: '/images/default-featured.jpg',
-        allowComments: true
+        allowComments: true,
       },
       monetization: {
         enableAffiliateLinks: true,
         enableSubscriptions: true,
-        defaultCommission: 5
+        defaultCommission: 5,
       },
       security: {
         enableCaptcha: true,
         jwtExpiryHours: 24,
-        maxLoginAttempts: 5
-      }
+        maxLoginAttempts: 5,
+      },
     };
-    
+
     // Cache for 1 hour
     await cache.set(cacheKey, settings, 3600);
   }
-  
+
   res.status(httpStatus.OK).json(settings);
 });
 
@@ -321,26 +293,26 @@ const getSystemSettings = catchAsync(async (req, res) => {
  */
 const updateSystemSettings = catchAsync(async (req, res) => {
   const { settings } = req.body;
-  
+
   if (!settings) {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Settings object is required');
   }
-  
+
   // This would typically update a settings collection in the database
   // For this implementation, we'll update the cache
-  
+
   const cacheKey = 'system:settings';
   await cache.set(cacheKey, settings, 3600);
-  
+
   // Track event
   await analyticsService.trackEvent('system_settings_updated', {
     adminId: req.user.id,
-    updatedSections: Object.keys(settings)
+    updatedSections: Object.keys(settings),
   });
-  
+
   res.status(httpStatus.OK).json({
     message: 'System settings updated successfully',
-    settings
+    settings,
   });
 });
 
@@ -351,7 +323,7 @@ const updateSystemSettings = catchAsync(async (req, res) => {
  */
 const clearCache = catchAsync(async (req, res) => {
   const { target } = req.body;
-  
+
   if (target === 'all') {
     // Clear all cache
     await cache.flushDb();
@@ -370,15 +342,15 @@ const clearCache = catchAsync(async (req, res) => {
   } else {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Invalid cache target');
   }
-  
+
   // Track event
   await analyticsService.trackEvent('cache_cleared', {
     adminId: req.user.id,
-    target
+    target,
   });
-  
+
   res.status(httpStatus.OK).json({
-    message: `Cache cleared successfully for target: ${target}`
+    message: `Cache cleared successfully for target: ${target}`,
   });
 });
 
@@ -390,5 +362,5 @@ module.exports = {
   updateApprovalStatus,
   getSystemSettings,
   updateSystemSettings,
-  clearCache
+  clearCache,
 };

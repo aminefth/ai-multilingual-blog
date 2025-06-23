@@ -16,7 +16,7 @@ router.post(
   '/generate/:postId',
   auth('manageBlogPosts'),
   validate(seoValidation.generateSEOMetadata),
-  seoController.generateSEOMetadata
+  seoController.generateSEOMetadata,
 );
 
 /**
@@ -28,7 +28,7 @@ router.put(
   '/:postId',
   auth('manageBlogPosts'),
   validate(seoValidation.updateSEOMetadata),
-  seoController.updateSEOMetadata
+  seoController.updateSEOMetadata,
 );
 
 /**
@@ -41,7 +41,7 @@ router.get(
   auth('manageBlogPosts'),
   validate(seoValidation.getSEOMetadata),
   cacheMiddleware(300), // Cache for 5 minutes
-  seoController.getSEOMetadata
+  seoController.getSEOMetadata,
 );
 
 /**
@@ -53,7 +53,7 @@ router.get(
   '/site-settings',
   auth('admin'),
   cacheMiddleware(3600), // Cache for 1 hour
-  seoController.getSiteSEOSettings
+  seoController.getSiteSEOSettings,
 );
 
 /**
@@ -65,7 +65,7 @@ router.put(
   '/site-settings',
   auth('admin'),
   validate(seoValidation.updateSiteSEOSettings),
-  seoController.updateSiteSEOSettings
+  seoController.updateSiteSEOSettings,
 );
 
 module.exports = router;

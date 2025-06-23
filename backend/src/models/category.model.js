@@ -18,7 +18,7 @@ const translationSchema = mongoose.Schema(
       lowercase: true,
     },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const categorySchema = mongoose.Schema(
@@ -63,14 +63,16 @@ const categorySchema = mongoose.Schema(
       ref: 'Category',
       default: null,
     },
-    ancestors: [{
-      _id: {
-        type: mongoose.SchemaTypes.ObjectId,
-        ref: 'Category',
+    ancestors: [
+      {
+        _id: {
+          type: mongoose.SchemaTypes.ObjectId,
+          ref: 'Category',
+        },
+        name: String,
+        slug: String,
       },
-      name: String,
-      slug: String,
-    }],
+    ],
     // Status
     isActive: {
       type: Boolean,
@@ -94,7 +96,7 @@ const categorySchema = mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // add plugin that converts mongoose to json
@@ -102,7 +104,7 @@ categorySchema.plugin(toJSON);
 categorySchema.plugin(paginate);
 
 // Generate slug from name if not provided
-categorySchema.pre('validate', function(next) {
+categorySchema.pre('validate', function (next) {
   if (this.isModified('name') && !this.slug) {
     this.slug = this.name
       .toLowerCase()
@@ -115,7 +117,7 @@ categorySchema.pre('validate', function(next) {
 });
 
 // Update ancestors when parent changes
-categorySchema.pre('save', async function(next) {
+categorySchema.pre('save', async function (next) {
   const category = this;
   if (category.isModified('parent')) {
     if (!category.parent) {
@@ -127,20 +129,20 @@ categorySchema.pre('save', async function(next) {
       if (!parent) {
         return next(new Error('Parent category not found'));
       }
-      
+
       const ancestors = [
         {
           _id: parent._id,
           name: parent.name,
           slug: parent.slug,
-        }
+        },
       ];
-      
+
       // Add parent's ancestors
       if (parent.ancestors && parent.ancestors.length > 0) {
         ancestors.push(...parent.ancestors);
       }
-      
+
       category.ancestors = ancestors;
     }
   }
@@ -152,7 +154,7 @@ categorySchema.pre('save', async function(next) {
  * @param {ObjectId} [parentId] - The parent category id (null for root categories)
  * @returns {Promise<Category[]>}
  */
-categorySchema.statics.findByParent = async function(parentId = null) {
+categorySchema.statics.findByParent = async function (parentId = null) {
   return this.find({ parent: parentId, isActive: true }).sort({ sortOrder: 1, name: 1 });
 };
 
@@ -160,7 +162,7 @@ categorySchema.statics.findByParent = async function(parentId = null) {
  * Increment post count
  * @returns {Promise<void>}
  */
-categorySchema.methods.incrementPostCount = async function() {
+categorySchema.methods.incrementPostCount = async function () {
   this.postCount += 1;
   return this.save();
 };
@@ -169,7 +171,7 @@ categorySchema.methods.incrementPostCount = async function() {
  * Decrement post count
  * @returns {Promise<void>}
  */
-categorySchema.methods.decrementPostCount = async function() {
+categorySchema.methods.decrementPostCount = async function () {
   if (this.postCount > 0) {
     this.postCount -= 1;
     return this.save();

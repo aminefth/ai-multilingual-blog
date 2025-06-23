@@ -12,11 +12,7 @@ const router = express.Router();
  * Track an analytics event
  * Public endpoint but can include authenticated user data
  */
-router.post(
-  '/track',
-  validate(analyticsValidation.trackEvent),
-  analyticsController.trackEvent
-);
+router.post('/track', validate(analyticsValidation.trackEvent), analyticsController.trackEvent);
 
 /**
  * GET /v1/analytics/dashboard
@@ -28,7 +24,7 @@ router.get(
   auth('admin'),
   validate(analyticsValidation.getDashboardData),
   cacheMiddleware(300), // Cache for 5 minutes
-  analyticsController.getDashboardData
+  analyticsController.getDashboardData,
 );
 
 /**
@@ -41,7 +37,7 @@ router.get(
   auth('manageBlogPosts'),
   validate(analyticsValidation.getContentPerformance),
   cacheMiddleware(300), // Cache for 5 minutes
-  analyticsController.getContentPerformance
+  analyticsController.getContentPerformance,
 );
 
 /**
@@ -54,7 +50,7 @@ router.get(
   auth('admin'),
   validate(analyticsValidation.getRevenueMetrics),
   cacheMiddleware(300), // Cache for 5 minutes
-  analyticsController.getRevenueMetrics
+  analyticsController.getRevenueMetrics,
 );
 
 /**
@@ -67,7 +63,7 @@ router.get(
   auth('admin'),
   validate(analyticsValidation.getUserEngagement),
   cacheMiddleware(300), // Cache for 5 minutes
-  analyticsController.getUserEngagement
+  analyticsController.getUserEngagement,
 );
 
 module.exports = router;

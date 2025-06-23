@@ -1,8 +1,7 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
-const ApiError = require('../utils/ApiError');
 const analyticsService = require('../services/analytics.service');
-const { Analytics, BlogPost } = require('../models');
+const { BlogPost } = require('../models');
 
 /**
  * Analytics controller for tracking user behavior and performance metrics
@@ -15,18 +14,18 @@ const { Analytics, BlogPost } = require('../models');
  */
 const trackEvent = catchAsync(async (req, res) => {
   const { event, data = {} } = req.body;
-  
+
   // If user is authenticated, add user ID to the data
   if (req.user) {
     data.userId = req.user.id;
   }
-  
+
   // Add client IP address and user agent for tracking
   data.ipAddress = req.ip;
   data.userAgent = req.headers['user-agent'];
-  
+
   await analyticsService.trackEvent(event, data);
-  
+
   // Return minimal response to keep tracking requests light
   res.status(httpStatus.OK).json({ success: true });
 });
@@ -38,25 +37,25 @@ const trackEvent = catchAsync(async (req, res) => {
  */
 const getDashboardData = catchAsync(async (req, res) => {
   const { period = '30d' } = req.query;
-  
+
   // Get revenue statistics for period
   const revenueStats = await analyticsService.getRevenueStats(period);
-  
+
   // Get top performing posts
   const topPosts = await analyticsService.getTopPosts(10);
-  
+
   // Get affiliate marketing performance
   const affiliatePerformance = await analyticsService.getAffiliatePerformance();
-  
+
   // Get user metrics
   const userMetrics = {
     totalUsers: revenueStats.users.total,
     newUsers: revenueStats.users.new,
     growthRate: revenueStats.users.growthRate,
     subscriberCount: await countSubscribers(),
-    conversionRate: calculateSubscriberRate(revenueStats.users.total)
+    conversionRate: calculateSubscriberRate(revenueStats.users.total),
   };
-  
+
   // Combine all metrics into a single dashboard response
   const dashboardData = {
     period,
@@ -64,18 +63,18 @@ const getDashboardData = catchAsync(async (req, res) => {
       total: revenueStats.total,
       breakdown: {
         affiliate: revenueStats.affiliate,
-        subscription: revenueStats.subscription
-      }
+        subscription: revenueStats.subscription,
+      },
     },
     content: {
       topPosts,
       totalPosts: await countTotalPosts(),
-      publishedThisPeriod: await countPostsInPeriod(period)
+      publishedThisPeriod: await countPostsInPeriod(period),
     },
     users: userMetrics,
-    affiliatePerformance
+    affiliatePerformance,
   };
-  
+
   res.status(httpStatus.OK).json(dashboardData);
 });
 
@@ -86,21 +85,21 @@ const getDashboardData = catchAsync(async (req, res) => {
  */
 const getContentPerformance = catchAsync(async (req, res) => {
   const { period = '30d', limit = 20 } = req.query;
-  
+
   // Get top performing posts with more details
   const posts = await analyticsService.getTopPosts(limit);
-  
+
   // Get posts published in period
   const recentPosts = await getRecentPosts(period, limit);
-  
+
   // Calculate aggregated metrics
   const aggregatedMetrics = calculateAggregatedMetrics(posts);
-  
+
   res.status(httpStatus.OK).json({
     period,
     metrics: aggregatedMetrics,
     topPosts: posts,
-    recentPosts
+    recentPosts,
   });
 });
 
@@ -111,26 +110,26 @@ const getContentPerformance = catchAsync(async (req, res) => {
  */
 const getRevenueMetrics = catchAsync(async (req, res) => {
   const { period = '30d' } = req.query;
-  
+
   // Get revenue statistics
   const revenueStats = await analyticsService.getRevenueStats(period);
-  
+
   // Get historical revenue data (mock function - would be implemented with real data)
   const revenueHistory = await getRevenueHistory(period);
-  
+
   // Get affiliate performance
   const affiliatePerformance = await analyticsService.getAffiliatePerformance();
-  
+
   res.status(httpStatus.OK).json({
     period,
     currentRevenue: revenueStats.total,
     breakdown: {
       affiliate: revenueStats.affiliate,
-      subscription: revenueStats.subscription
+      subscription: revenueStats.subscription,
     },
     history: revenueHistory,
     affiliatePerformance,
-    projectedRevenue: calculateProjectedRevenue(revenueHistory)
+    projectedRevenue: calculateProjectedRevenue(revenueHistory),
   });
 });
 
@@ -141,42 +140,42 @@ const getRevenueMetrics = catchAsync(async (req, res) => {
  */
 const getUserEngagement = catchAsync(async (req, res) => {
   const { period = '30d' } = req.query;
-  
+
   // Get user metrics
   const revenueStats = await analyticsService.getRevenueStats(period);
-  
+
   // Get engagement events (mock function - would use real events from Analytics collection)
   const engagementEvents = await getEngagementEvents(period);
-  
+
   // Format response
   const engagement = {
     users: {
       total: revenueStats.users.total,
       new: revenueStats.users.new,
       returning: revenueStats.users.total - revenueStats.users.new,
-      growthRate: revenueStats.users.growthRate
+      growthRate: revenueStats.users.growthRate,
     },
     engagement: {
       averageSessionDuration: engagementEvents.averageSessionDuration,
       pageViewsPerSession: engagementEvents.pageViewsPerSession,
       bounceRate: engagementEvents.bounceRate,
-      commentCount: engagementEvents.commentCount
+      commentCount: engagementEvents.commentCount,
     },
     retention: {
       day1: engagementEvents.retention.day1,
       day7: engagementEvents.retention.day7,
-      day30: engagementEvents.retention.day30
+      day30: engagementEvents.retention.day30,
     },
     subscriptions: {
       total: await countSubscribers(),
       conversionRate: calculateSubscriberRate(revenueStats.users.total),
-      churnRate: await calculateChurnRate(period)
-    }
+      churnRate: await calculateChurnRate(period),
+    },
   };
-  
+
   res.status(httpStatus.OK).json({
     period,
-    engagement
+    engagement,
   });
 });
 
@@ -215,7 +214,7 @@ async function countPostsInPeriod(period) {
   const startDate = getStartDateFromPeriod(period);
   return BlogPost.countDocuments({
     status: 'published',
-    publishedAt: { $gte: startDate }
+    publishedAt: { $gte: startDate },
   });
 }
 
@@ -225,22 +224,22 @@ async function countPostsInPeriod(period) {
  */
 async function getRecentPosts(period, limit) {
   const startDate = getStartDateFromPeriod(period);
-  
+
   const posts = await BlogPost.find({
     status: 'published',
-    publishedAt: { $gte: startDate }
+    publishedAt: { $gte: startDate },
   })
-  .sort({ publishedAt: -1 })
-  .limit(limit)
-  .select('title slug views uniqueViews publishedAt');
-  
-  return posts.map(post => ({
+    .sort({ publishedAt: -1 })
+    .limit(limit)
+    .select('title slug views uniqueViews publishedAt');
+
+  return posts.map((post) => ({
     id: post._id,
     title: post.title,
     slug: post.slug,
     views: post.views || 0,
     uniqueViews: post.uniqueViews || 0,
-    publishedAt: post.publishedAt
+    publishedAt: post.publishedAt,
   }));
 }
 
@@ -254,19 +253,19 @@ function calculateAggregatedMetrics(posts) {
       totalViews: 0,
       totalUniqueViews: 0,
       averageEngagement: 0,
-      averageRevenue: 0
+      averageRevenue: 0,
     };
   }
-  
+
   const totalViews = posts.reduce((sum, post) => sum + post.views, 0);
   const totalUniqueViews = posts.reduce((sum, post) => sum + post.uniqueViews, 0);
   const totalRevenue = posts.reduce((sum, post) => sum + (post.revenue || 0), 0);
-  
+
   return {
     totalViews,
     totalUniqueViews,
     averageEngagement: totalViews > 0 ? (totalViews / posts.length).toFixed(2) : 0,
-    averageRevenue: (totalRevenue / posts.length).toFixed(2)
+    averageRevenue: (totalRevenue / posts.length).toFixed(2),
   };
 }
 
@@ -277,25 +276,25 @@ function calculateAggregatedMetrics(posts) {
 async function getRevenueHistory(period) {
   // This would query the actual revenue data from database
   // Mock implementation for now
-  
+
   // Generate dates based on period
   const numDays = getPeriodDays(period);
   const history = [];
-  
+
   // Generate mock revenue data for each day
   for (let i = 0; i < numDays; i++) {
     const date = new Date();
     date.setDate(date.getDate() - i);
     const dateStr = date.toISOString().split('T')[0];
-    
+
     history.unshift({
       date: dateStr,
       total: parseFloat((Math.random() * 100 + 50).toFixed(2)),
       affiliate: parseFloat((Math.random() * 60 + 20).toFixed(2)),
-      subscription: parseFloat((Math.random() * 40 + 30).toFixed(2))
+      subscription: parseFloat((Math.random() * 40 + 30).toFixed(2)),
     });
   }
-  
+
   return history;
 }
 
@@ -308,12 +307,12 @@ function calculateProjectedRevenue(history) {
   if (!history || history.length < 7) {
     return 0;
   }
-  
+
   // Calculate average daily revenue from last 7 days
   const last7Days = history.slice(-7);
   const sum = last7Days.reduce((total, day) => total + day.total, 0);
   const averageDaily = sum / 7;
-  
+
   // Project for next 30 days
   return parseFloat((averageDaily * 30).toFixed(2));
 }
@@ -322,10 +321,10 @@ function calculateProjectedRevenue(history) {
  * Helper function to get engagement events
  * @private
  */
-async function getEngagementEvents(period) {
+async function getEngagementEvents(_period) {
   // This would query the actual analytics events from database
   // Mock implementation for now
-  
+
   return {
     averageSessionDuration: '3m 24s',
     pageViewsPerSession: 2.7,
@@ -334,8 +333,8 @@ async function getEngagementEvents(period) {
     retention: {
       day1: '68%',
       day7: '42%',
-      day30: '29%'
-    }
+      day30: '29%',
+    },
   };
 }
 
@@ -343,7 +342,7 @@ async function getEngagementEvents(period) {
  * Helper function to calculate churn rate
  * @private
  */
-async function calculateChurnRate(period) {
+async function calculateChurnRate(_period) {
   // This would calculate actual churn rate from subscription data
   // Mock implementation for now
   return '5.2%';
@@ -356,21 +355,26 @@ async function calculateChurnRate(period) {
 function getStartDateFromPeriod(period) {
   const now = new Date();
   const match = period.match(/^(\d+)([dwmy])$/);
-  
+
   if (!match) {
     // Default to 30 days if invalid format
     return new Date(now - 30 * 24 * 60 * 60 * 1000);
   }
-  
+
   const [, amount, unit] = match;
   const value = parseInt(amount, 10);
-  
+
   switch (unit) {
-    case 'd': return new Date(now - value * 24 * 60 * 60 * 1000);
-    case 'w': return new Date(now - value * 7 * 24 * 60 * 60 * 1000);
-    case 'm': return new Date(now - value * 30 * 24 * 60 * 60 * 1000);
-    case 'y': return new Date(now - value * 365 * 24 * 60 * 60 * 1000);
-    default: return new Date(now - 30 * 24 * 60 * 60 * 1000);
+    case 'd':
+      return new Date(now - value * 24 * 60 * 60 * 1000);
+    case 'w':
+      return new Date(now - value * 7 * 24 * 60 * 60 * 1000);
+    case 'm':
+      return new Date(now - value * 30 * 24 * 60 * 60 * 1000);
+    case 'y':
+      return new Date(now - value * 365 * 24 * 60 * 60 * 1000);
+    default:
+      return new Date(now - 30 * 24 * 60 * 60 * 1000);
   }
 }
 
@@ -380,20 +384,25 @@ function getStartDateFromPeriod(period) {
  */
 function getPeriodDays(period) {
   const match = period.match(/^(\d+)([dwmy])$/);
-  
+
   if (!match) {
     return 30; // Default
   }
-  
+
   const [, amount, unit] = match;
   const value = parseInt(amount, 10);
-  
+
   switch (unit) {
-    case 'd': return value;
-    case 'w': return value * 7;
-    case 'm': return value * 30;
-    case 'y': return value * 365;
-    default: return 30;
+    case 'd':
+      return value;
+    case 'w':
+      return value * 7;
+    case 'm':
+      return value * 30;
+    case 'y':
+      return value * 365;
+    default:
+      return 30;
   }
 }
 
@@ -402,5 +411,5 @@ module.exports = {
   getDashboardData,
   getContentPerformance,
   getRevenueMetrics,
-  getUserEngagement
+  getUserEngagement,
 };

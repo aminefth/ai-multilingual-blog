@@ -1,9 +1,8 @@
-const { BlogPost, User } = require('../models');
-const { cache } = require('../config/redis');
 const ApiError = require('../utils/ApiError');
 const httpStatus = require('http-status');
 const aiService = require('./ai.service');
-const analyticsService = require('./analytics.service');
+const { BlogPost } = require('../models');
+const logger = require('../utils/logger');
 
 /**
  * Create a new blog post
@@ -15,15 +14,15 @@ const createPost = async (postData) => {
   if (!postData.slug && postData.title) {
     postData.slug = generateSlug(postData.title);
   }
-  
+
   // Calculate reading time if content is provided
   if (postData.content) {
     postData.readingTime = calculateReadingTime(postData.content);
   }
-  
+
   // Create the post
   const post = await BlogPost.create(postData);
-  
+
   return post;
 };
 
@@ -38,18 +37,13 @@ const createPost = async (postData) => {
  * @returns {Promise<QueryResult>}
  */
 const getPosts = async (filter, options = {}) => {
-  const {
-    sortBy = 'publishedAt:desc',
-    limit = 10,
-    page = 1,
-    language = 'en'
-  } = options;
+  const { sortBy = 'publishedAt:desc', limit = 10, page = 1, language = 'en' } = options;
 
   const skip = (page - 1) * limit;
 
   // Build query
   const query = { ...filter };
-  
+
   // Filter by published status if not explicitly provided
   if (!filter.status) {
     query.status = 'published';
@@ -65,14 +59,14 @@ const getPosts = async (filter, options = {}) => {
   const total = await BlogPost.countDocuments(query);
 
   // Localize posts based on requested language
-  const results = posts.map(post => localizePost(post, language));
+  const results = posts.map((post) => localizePost(post, language));
 
   return {
     results,
     page,
     limit,
     totalPages: Math.ceil(total / limit),
-    totalResults: total
+    totalResults: total,
   };
 };
 
@@ -86,11 +80,11 @@ const getPostById = async (id, language = 'en') => {
   const post = await BlogPost.findById(id)
     .populate('author', 'name email avatar')
     .populate('category', 'name slug');
-  
+
   if (!post) {
     return null;
   }
-  
+
   return localizePost(post, language);
 };
 
@@ -103,18 +97,15 @@ const getPostById = async (id, language = 'en') => {
 const getPostBySlug = async (slug, language = 'en') => {
   // Try to find by original slug or translated slug
   const post = await BlogPost.findOne({
-    $or: [
-      { slug },
-      { [`translations.${language}.slug`]: slug }
-    ]
+    $or: [{ slug }, { [`translations.${language}.slug`]: slug }],
   })
-  .populate('author', 'name email avatar')
-  .populate('category', 'name slug');
-  
+    .populate('author', 'name email avatar')
+    .populate('category', 'name slug');
+
   if (!post) {
     return null;
   }
-  
+
   return localizePost(post, language);
 };
 
@@ -127,35 +118,35 @@ const getPostBySlug = async (slug, language = 'en') => {
  */
 const updatePost = async (postId, updateBody, userId) => {
   const post = await BlogPost.findById(postId);
-  
+
   if (!post) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Post not found');
   }
-  
+
   // Check if user is authorized (is author or has admin rights)
   if (post.author.toString() !== userId) {
     // Check if user has admin rights would be done at the middleware level
     throw new ApiError(httpStatus.FORBIDDEN, 'Not authorized to update this post');
   }
-  
+
   // Update slug if title is being updated
   if (updateBody.title && !updateBody.slug) {
     updateBody.slug = generateSlug(updateBody.title);
   }
-  
+
   // Update reading time if content is being updated
   if (updateBody.content) {
     updateBody.readingTime = calculateReadingTime(updateBody.content);
   }
-  
+
   // Set publishedAt date if status is being changed to published
   if (updateBody.status === 'published' && post.status !== 'published') {
     updateBody.publishedAt = new Date();
   }
-  
+
   Object.assign(post, updateBody);
   await post.save();
-  
+
   return post;
 };
 
@@ -167,21 +158,21 @@ const updatePost = async (postId, updateBody, userId) => {
  */
 const deletePost = async (postId, userId) => {
   const post = await BlogPost.findById(postId);
-  
+
   if (!post) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Post not found');
   }
-  
+
   // Check if user is authorized (is author or has admin rights)
   if (post.author.toString() !== userId) {
     // Check if user has admin rights would be done at the middleware level
     throw new ApiError(httpStatus.FORBIDDEN, 'Not authorized to delete this post');
   }
-  
+
   // Soft delete (change status to archived)
   post.status = 'archived';
   await post.save();
-  
+
   return post;
 };
 
@@ -193,24 +184,24 @@ const deletePost = async (postId, userId) => {
  */
 const translatePost = async (postId, targetLanguages = ['en', 'fr', 'de', 'es']) => {
   const post = await BlogPost.findById(postId);
-  
+
   if (!post) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Post not found');
   }
-  
+
   // Determine source language - default to 'en' if not set
   const sourceLanguage = post.language || 'en';
-  
+
   // Filter out source language from target languages
-  const languages = targetLanguages.filter(lang => lang !== sourceLanguage);
-  
+  const languages = targetLanguages.filter((lang) => lang !== sourceLanguage);
+
   if (languages.length === 0) {
     return { message: 'No languages to translate to' };
   }
-  
+
   const translations = {};
   const errors = {};
-  
+
   for (const lang of languages) {
     try {
       // Use OpenAI to translate content
@@ -218,12 +209,12 @@ const translatePost = async (postId, targetLanguages = ['en', 'fr', 'de', 'es'])
         post.content,
         post.title,
         sourceLanguage,
-        lang
+        lang,
       );
-      
+
       // Generate slug for the translated title
       const translatedSlug = generateSlug(translated.title);
-      
+
       // Store translations in the format expected by the model
       translations[lang] = {
         title: translated.title,
@@ -232,20 +223,20 @@ const translatePost = async (postId, targetLanguages = ['en', 'fr', 'de', 'es'])
         slug: translatedSlug,
       };
     } catch (error) {
-      console.error(`Translation failed for ${lang}:`, error);
+      logger.error(`Translation failed for ${lang}:`, error);
       errors[lang] = error.message;
     }
   }
-  
+
   // Update post with new translations
   if (Object.keys(translations).length > 0) {
     post.translations = { ...post.translations, ...translations };
     await post.save();
   }
-  
+
   return {
     translations,
-    errors: Object.keys(errors).length > 0 ? errors : undefined
+    errors: Object.keys(errors).length > 0 ? errors : undefined,
   };
 };
 
@@ -267,26 +258,26 @@ const incrementViews = async (postId, isUnique = false) => {
  * Track affiliate link click
  * @param {ObjectId} postId - Post id
  * @param {Number} linkIndex - Index of the affiliate link
- * @param {ObjectId} userId - Optional user id for tracking
  * @returns {Promise<Object>} - Updated affiliate link data
  */
-const trackAffiliateClick = async (postId, linkIndex, userId = null) => {
+const trackAffiliateClick = async (postId, linkIndex) => {
   const post = await BlogPost.findById(postId);
-  
+
   if (!post || !post.affiliateLinks || !post.affiliateLinks[linkIndex]) {
     throw new ApiError(httpStatus.NOT_FOUND, 'Post or affiliate link not found');
   }
-  
+
   // Increment click count
   post.affiliateLinks[linkIndex].clicks += 1;
   await post.save();
-  
+
   // Calculate conversion rate
-  const conversionRate = post.affiliateLinks[linkIndex].conversions / post.affiliateLinks[linkIndex].clicks * 100;
-  
+  const conversionRate =
+    (post.affiliateLinks[linkIndex].conversions / post.affiliateLinks[linkIndex].clicks) * 100;
+
   return {
     ...post.affiliateLinks[linkIndex].toObject(),
-    conversionRate: parseFloat(conversionRate.toFixed(2))
+    conversionRate: parseFloat(conversionRate.toFixed(2)),
   };
 };
 
@@ -343,21 +334,21 @@ const localizePost = (post, language) => {
   if (post.language === language) {
     return post;
   }
-  
+
   if (post.translations && post.translations[language]) {
     const translation = post.translations[language];
     const postObject = post.toObject ? post.toObject() : post;
-    
+
     return {
       ...postObject,
       title: translation.title || postObject.title,
       content: translation.content || postObject.content,
       excerpt: translation.excerpt || postObject.excerpt,
       slug: translation.slug || postObject.slug,
-      language
+      language,
     };
   }
-  
+
   return post;
 };
 
