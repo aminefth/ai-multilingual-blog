@@ -47,6 +47,548 @@ components:
         message:
           type: string
 
+    # ===== BLOG & CONTENT SCHEMAS =====
+    BlogPost:
+      type: object
+      required:
+        - title
+        - slug
+        - content
+        - author
+        - status
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the blog post
+          example: '507f1f77bcf86cd799439011'
+
+        # Contenu principal
+        title:
+          type: string
+          maxLength: 200
+          description: Blog post title
+          example: '10 Outils IA qui Génèrent 1000€/mois'
+
+        slug:
+          type: string
+          pattern: '^[a-z0-9-]+$'
+          description: URL-friendly identifier
+          example: '10-outils-ia-generent-1000-euros-mois'
+
+        content:
+          type: string
+          description: Full blog post content in markdown
+          example: "# Introduction\n\nDécouvrez ces outils révolutionnaires..."
+
+        excerpt:
+          type: string
+          maxLength: 500
+          description: Short summary of the post
+          example: 'Découvrez comment ces 10 outils IA peuvent transformer votre business...'
+
+        # Métadonnées
+        author:
+          $ref: '#/components/schemas/User'
+
+        status:
+          type: string
+          enum: [draft, published, archived]
+          description: Publication status
+          example: 'published'
+
+        publishedAt:
+          type: string
+          format: date-time
+          description: Publication timestamp
+          example: '2025-01-15T10:30:00Z'
+
+        # SEO et référencement
+        metaTitle:
+          type: string
+          maxLength: 100
+          description: SEO meta title
+          example: '10 Outils IA Rentables - Guide Complet 2025'
+
+        metaDescription:
+          type: string
+          maxLength: 160
+          description: SEO meta description
+          example: 'Découvrez les 10 outils IA les plus rentables en 2025. Guide complet avec stratégies et résultats réels.'
+
+        keywords:
+          type: array
+          items:
+            type: string
+          description: SEO keywords
+          example: ['IA', 'outils', 'revenus', 'automation', 'business']
+
+        canonicalUrl:
+          type: string
+          format: uri
+          description: Canonical URL for SEO
+          example: 'https://blog.example.com/10-outils-ia-revenus'
+
+        # Monétisation
+        isPremium:
+          type: boolean
+          description: Whether this is premium content
+          example: true
+
+        affiliateLinks:
+          type: array
+          items:
+            $ref: '#/components/schemas/AffiliateLink'
+          description: Affiliate links within the content
+
+        # Analytics et performance
+        views:
+          type: integer
+          minimum: 0
+          description: Total page views
+          example: 15420
+
+        uniqueViews:
+          type: integer
+          minimum: 0
+          description: Unique visitors
+          example: 12150
+
+        shares:
+          type: integer
+          minimum: 0
+          description: Social media shares
+          example: 347
+
+        readingTime:
+          type: integer
+          minimum: 1
+          description: Estimated reading time in minutes
+          example: 8
+
+        # Revenus et conversions
+        revenueGenerated:
+          type: number
+          format: float
+          minimum: 0
+          description: Total revenue generated from this post
+          example: 1247.50
+
+        conversionRate:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Conversion rate percentage
+          example: 3.2
+
+        # Catégorisation
+        category:
+          $ref: '#/components/schemas/Category'
+
+        tags:
+          type: array
+          items:
+            type: string
+          description: Content tags
+          example: ['ChatGPT', 'Automation', 'Revenus Passifs']
+
+        # Multilingue
+        translations:
+          type: object
+          properties:
+            en:
+              $ref: '#/components/schemas/Translation'
+            fr:
+              $ref: '#/components/schemas/Translation'
+            de:
+              $ref: '#/components/schemas/Translation'
+            es:
+              $ref: '#/components/schemas/Translation'
+
+        # Image mise en avant
+        featuredImage:
+          type: object
+          properties:
+            url:
+              type: string
+              format: uri
+              example: 'https://cdn.example.com/images/ai-tools-2025.jpg'
+            alt:
+              type: string
+              example: '10 outils IA rentables en 2025'
+            caption:
+              type: string
+              example: "Ces outils révolutionnent l'entrepreneuriat digital"
+
+        # Timestamps
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: '2025-01-10T14:20:00Z'
+
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: '2025-01-15T09:15:00Z'
+
+    AffiliateLink:
+      type: object
+      required:
+        - text
+        - url
+        - tool
+      properties:
+        id:
+          type: string
+          description: Unique link identifier
+          example: 'link_ai_tool_chatgpt'
+
+        text:
+          type: string
+          description: Anchor text for the link
+          example: 'Découvrir ChatGPT Plus'
+
+        url:
+          type: string
+          format: uri
+          description: Affiliate tracking URL
+          example: 'https://affiliate.openai.com/chatgpt-plus?ref=blog123'
+
+        tool:
+          type: string
+          description: Name of the affiliated tool/product
+          example: 'ChatGPT Plus'
+
+        commission:
+          type: number
+          format: float
+          minimum: 0
+          description: Commission percentage or fixed amount
+          example: 25.00
+
+        # Performance tracking
+        clicks:
+          type: integer
+          minimum: 0
+          description: Total clicks on this link
+          example: 847
+
+        conversions:
+          type: integer
+          minimum: 0
+          description: Successful conversions/sales
+          example: 23
+
+        revenue:
+          type: number
+          format: float
+          minimum: 0
+          description: Total revenue generated
+          example: 345.75
+
+        # Analytics
+        clickThroughRate:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: CTR percentage
+          example: 5.6
+
+        conversionRate:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 100
+          description: Conversion rate percentage
+          example: 2.7
+
+        lastClickAt:
+          type: string
+          format: date-time
+          description: Last click timestamp
+          example: '2025-01-19T15:30:00Z'
+
+    SEOMetadata:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        keywords:
+          type: array
+          items:
+            type: string
+        ogTitle:
+          type: string
+        ogDescription:
+          type: string
+        ogImage:
+          type: string
+        canonicalUrl:
+          type: string
+      example:
+        title: '10 Best AI Tools for Content Creation - Complete Guide 2024'
+        description: 'Discover the top AI tools for content creation. Boost productivity with ChatGPT, Jasper, Copy.ai and more. Expert reviews and comparisons.'
+        keywords: ['AI tools', 'content creation', 'ChatGPT', 'Jasper', 'Copy.ai']
+        ogTitle: '10 Best AI Tools for Content Creation in 2024'
+        ogDescription: 'Complete guide to the best AI content creation tools'
+
+    # ===== SUBSCRIPTION & MONETIZATION =====
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        plan:
+          type: string
+          enum: [free, basic, pro, enterprise]
+        status:
+          type: string
+          enum: [active, canceled, past_due, unpaid]
+        stripeCustomerId:
+          type: string
+        stripeSubscriptionId:
+          type: string
+        currentPeriodStart:
+          type: string
+          format: date-time
+        currentPeriodEnd:
+          type: string
+          format: date-time
+        features:
+          type: array
+          items:
+            type: string
+        billingInterval:
+          type: string
+          enum: [monthly, yearly]
+        amount:
+          type: number
+        currency:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      example:
+        id: '64a1b2c3d4e5f6789abcdef2'
+        plan: 'pro'
+        status: 'active'
+        stripeCustomerId: 'cus_1234567890'
+        amount: 29.99
+        currency: 'USD'
+        billingInterval: 'monthly'
+        features:
+          ['Unlimited posts', 'Premium templates', 'Analytics dashboard', 'Priority support']
+
+    Category:
+      type: object
+      required:
+        - name
+        - slug
+      properties:
+        id:
+          type: string
+          example: 'cat_ai_tools'
+
+        name:
+          type: string
+          example: 'Outils IA'
+
+        slug:
+          type: string
+          pattern: '^[a-z0-9-]+$'
+          example: 'outils-ia'
+
+        description:
+          type: string
+          example: "Découvrez les meilleurs outils d'intelligence artificielle"
+
+        parentCategory:
+          type: string
+          description: Parent category ID for hierarchical structure
+          example: 'cat_technology'
+
+        isActive:
+          type: boolean
+          description: Whether category is active
+          example: true
+
+        postCount:
+          type: integer
+          minimum: 0
+          description: Number of posts in this category
+          example: 42
+
+    # Schéma Translation pour multilingue
+    Translation:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 200
+          example: '10 AI Tools That Generate $1000/month'
+
+        content:
+          type: string
+          example: "# Introduction\n\nDiscover these revolutionary tools..."
+
+        excerpt:
+          type: string
+          maxLength: 500
+          example: 'Learn how these 10 AI tools can transform your business...'
+
+        slug:
+          type: string
+          pattern: '^[a-z0-9-]+$'
+          example: '10-ai-tools-generate-1000-month'
+
+    # Schéma pour réponses paginées
+    PaginatedBlogPosts:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BlogPost'
+
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 10
+
+        totalPages:
+          type: integer
+          minimum: 0
+          example: 15
+
+        totalResults:
+          type: integer
+          minimum: 0
+          example: 147
+
+        hasNext:
+          type: boolean
+          example: true
+
+        hasPrev:
+          type: boolean
+          example: false
+
+    # ===== ANALYTICS SCHEMAS =====
+    AnalyticsEvent:
+      type: object
+      properties:
+        event:
+          type: string
+        properties:
+          type: object
+        userId:
+          type: string
+        sessionId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      example:
+        event: 'blog_post_view'
+        properties:
+          postId: '64a1b2c3d4e5f6789abcdef0'
+          category: 'AI Tools'
+          readingTime: 8
+        userId: '64a1b2c3d4e5f6789abcdef4'
+        sessionId: 'sess_1234567890'
+
+    DashboardMetrics:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalPosts:
+          type: integer
+        totalRevenue:
+          type: number
+        activeSubscriptions:
+          type: integer
+        monthlyGrowth:
+          type: number
+        topPerformingPosts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContentPerformance'
+        revenueBreakdown:
+          $ref: '#/components/schemas/RevenueMetrics'
+      example:
+        totalUsers: 12450
+        totalPosts: 156
+        totalRevenue: 45230.50
+        activeSubscriptions: 892
+        monthlyGrowth: 0.15
+
+    ContentPerformance:
+      type: object
+      properties:
+        postId:
+          type: string
+        title:
+          type: string
+        views:
+          type: integer
+        conversions:
+          type: integer
+        revenue:
+          type: number
+        engagementRate:
+          type: number
+        ctr:
+          type: number
+        topAffiliateLinks:
+          type: array
+          items:
+            $ref: '#/components/schemas/AffiliateLink'
+      example:
+        postId: '64a1b2c3d4e5f6789abcdef0'
+        title: '10 Best AI Tools for Content Creation'
+        views: 1250
+        conversions: 98
+        revenue: 1225.50
+        engagementRate: 0.78
+        ctr: 0.12
+
+    RevenueMetrics:
+      type: object
+      properties:
+        totalRevenue:
+          type: number
+        affiliateRevenue:
+          type: number
+        subscriptionRevenue:
+          type: number
+        growth:
+          type: number
+        monthlyRecurring:
+          type: number
+        averageOrderValue:
+          type: number
+      example:
+        totalRevenue: 45230.50
+        affiliateRevenue: 28450.30
+        subscriptionRevenue: 16780.20
+        growth: 0.15
+        monthlyRecurring: 16780.20
+        averageOrderValue: 125.75
+
   responses:
     DuplicateEmail:
       description: Email already taken
