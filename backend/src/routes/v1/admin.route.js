@@ -8,12 +8,41 @@ const cacheMiddleware = require('../../middlewares/cache');
 const router = express.Router();
 
 /**
- * All routes in this file require admin permissions
+ * @swagger
+ * tags:
+ *   name: Admin
+ *   description: Admin dashboard and system management
  */
 
 /**
- * GET /v1/admin/dashboard
- * Get admin dashboard data
+ * @swagger
+ * /admin/dashboard:
+ *   get:
+ *     summary: Get admin dashboard data
+ *     description: Retrieve comprehensive admin dashboard statistics and metrics
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 totalUsers:
+ *                   type: integer
+ *                 totalPosts:
+ *                   type: integer
+ *                 totalRevenue:
+ *                   type: number
+ *                 activeSubscriptions:
+ *                   type: integer
+ *       "401":
+ *         description: Unauthorized
+ *       "403":
+ *         description: Forbidden
  */
 router.get(
   '/dashboard',

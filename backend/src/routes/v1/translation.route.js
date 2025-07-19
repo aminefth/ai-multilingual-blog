@@ -8,9 +8,38 @@ const translationController = require('../../controllers/translation.controller'
 const router = express.Router();
 
 /**
- * GET /v1/translations/languages
- * Get all available languages
- * Public endpoint, cached for 1 day (86400 seconds)
+ * @swagger
+ * tags:
+ *   name: Translations
+ *   description: Multilingual translation management
+ */
+
+/**
+ * @swagger
+ * /translations/languages:
+ *   get:
+ *     summary: Get available languages
+ *     description: Get all supported languages (FR, EN, ES, DE, AR)
+ *     tags: [Translations]
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   code:
+ *                     type: string
+ *                     example: "fr"
+ *                   name:
+ *                     type: string
+ *                     example: "Français"
+ *                   rtl:
+ *                     type: boolean
+ *                     example: false
  */
 router.get('/languages', cacheMiddleware(86400), translationController.getLanguages);
 

@@ -1,12 +1,15 @@
 const request = require('supertest');
-const mongoose = require('mongoose');
+// Nous utilisons mongoose indirectement via setupTestDB
+// const mongoose = require('mongoose');
 const httpStatus = require('http-status');
 const app = require('../../src/app');
 const setupTestDB = require('../utils/setupTestDB');
 const { userOne, admin, insertUsers } = require('../fixtures/user.fixture');
 const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
-const BlogPostFactory = require('../factories/blogPostFactory');
-const { BlogPost, User } = require('../../src/models');
+// Import non utilisé après avoir commenté la création du blog post
+// const BlogPostFactory = require('../factories/blogPostFactory');
+// Nous n'utilisons pas directement ces modèles, suppression des imports
+// const { BlogPost, User } = require('../../src/models');
 
 setupTestDB();
 
@@ -24,14 +27,12 @@ describe('E2E API Tests', () => {
         password: 'password123',
       };
 
-      const registerRes = await request(app)
-        .post('/api/v1/auth/register')
-        .send(newUser);
+      const registerRes = await request(app).post('/api/v1/auth/register').send(newUser);
 
       expect(registerRes.status).toBe(httpStatus.CREATED);
       expect(registerRes.body.user).toBeDefined();
       expect(registerRes.body.tokens).toBeDefined();
-      
+
       const { tokens } = registerRes.body;
 
       // 2. Access protected route with tokens
@@ -64,10 +65,10 @@ describe('E2E API Tests', () => {
 
       expect(getBlog.status).toBe(httpStatus.OK);
       expect(getBlog.body.title).toBe(blogData.title);
-      
+
       // 5. Update the blog post
       const updateData = { title: 'Updated E2E Blog Title' };
-      
+
       const updateBlog = await request(app)
         .patch(`/api/v1/blog/${blogId}`)
         .set('Authorization', `Bearer ${tokens.access.token}`)
@@ -75,7 +76,7 @@ describe('E2E API Tests', () => {
 
       expect(updateBlog.status).toBe(httpStatus.OK);
       expect(updateBlog.body.title).toBe(updateData.title);
-      
+
       // 6. Logout
       const logoutRes = await request(app)
         .post('/api/v1/auth/logout')
@@ -97,22 +98,20 @@ describe('E2E API Tests', () => {
       // Make multiple requests to a rate-limited endpoint in quick succession
       const promises = [];
       const numRequests = 20; // Adjust based on your rate limit configuration
-      
+
       for (let i = 0; i < numRequests; i++) {
         promises.push(
-          request(app)
-            .get('/api/v1/blog')
-            .set('Authorization', `Bearer ${userOneAccessToken}`)
+          request(app).get('/api/v1/blog').set('Authorization', `Bearer ${userOneAccessToken}`),
         );
       }
-      
+
       const responses = await Promise.all(promises);
-      
+
       // Check if any responses received rate limit error
       const rateLimitedResponses = responses.filter(
-        (res) => res.status === httpStatus.TOO_MANY_REQUESTS
+        (res) => res.status === httpStatus.TOO_MANY_REQUESTS,
       );
-      
+
       // Verify that rate limiting is working
       expect(rateLimitedResponses.length).toBeGreaterThan(0);
     });
@@ -120,24 +119,24 @@ describe('E2E API Tests', () => {
 
   describe('Admin operations', () => {
     test('admin can access admin-only routes while regular users cannot', async () => {
-      // Create a test blog post
-      const blogPost = await new BlogPostFactory({
-        author: userOne._id,
-        status: 'published',
-      }).create();
-      
+      // Blog post non utilisé dans ce test - nous le commentons pour éviter l'erreur lint
+      // const blogPost = await new BlogPostFactory({
+      //   author: userOne._id,
+      //   status: 'published',
+      // }).create();
+
       // Regular user attempts to access admin route
       const userAdminAttempt = await request(app)
         .get('/api/v1/admin/stats')
         .set('Authorization', `Bearer ${userOneAccessToken}`);
-      
+
       expect(userAdminAttempt.status).toBe(httpStatus.FORBIDDEN);
-      
+
       // Admin successfully accesses admin route
       const adminAccess = await request(app)
         .get('/api/v1/admin/stats')
         .set('Authorization', `Bearer ${adminAccessToken}`);
-      
+
       expect(adminAccess.status).toBe(httpStatus.OK);
       expect(adminAccess.body).toHaveProperty('userCount');
       expect(adminAccess.body).toHaveProperty('blogPostCount');

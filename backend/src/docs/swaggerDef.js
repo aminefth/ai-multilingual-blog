@@ -4,16 +4,37 @@ const config = require('../config/config');
 const swaggerDef = {
   openapi: '3.0.0',
   info: {
-    title: 'node-express-boilerplate API documentation',
+    title: 'AI Multilingual Blog API',
     version,
+    description:
+      'A comprehensive REST API for AI-powered multilingual blog platform with monetization features',
+    contact: {
+      name: 'AI Tools Blog Team',
+      email: 'support@ai-tools-blog.com',
+    },
     license: {
       name: 'MIT',
-      url: 'https://github.com/hagopj13/node-express-boilerplate/blob/master/LICENSE',
+      url: 'https://opensource.org/licenses/MIT',
     },
   },
   servers: [
     {
       url: `http://localhost:${config.port}/v1`,
+      description: 'Development server',
+    },
+  ],
+  components: {
+    securitySchemes: {
+      bearerAuth: {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+    },
+  },
+  security: [
+    {
+      bearerAuth: [],
     },
   ],
 };

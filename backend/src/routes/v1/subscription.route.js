@@ -8,9 +8,39 @@ const cacheMiddleware = require('../../middlewares/cache');
 const router = express.Router();
 
 /**
- * GET /v1/subscriptions/plans
- * Get all available subscription plans
- * Public endpoint, cached for 1 day (86400 seconds)
+ * @swagger
+ * tags:
+ *   name: Subscriptions
+ *   description: Subscription and payment management
+ */
+
+/**
+ * @swagger
+ * /subscriptions/plans:
+ *   get:
+ *     summary: Get subscription plans
+ *     description: Get all available subscription plans (Basic, Pro, Enterprise)
+ *     tags: [Subscriptions]
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   price:
+ *                     type: number
+ *                   features:
+ *                     type: array
+ *                     items:
+ *                       type: string
  */
 router.get('/plans', cacheMiddleware(86400), subscriptionController.getSubscriptionPlans);
 

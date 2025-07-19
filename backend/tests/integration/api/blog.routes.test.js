@@ -4,7 +4,11 @@ const httpStatus = require('http-status');
 const app = require('../../../src/app');
 const setupTestDB = require('../../utils/setupTestDB');
 const { userOne, userTwo, admin, insertUsers } = require('../../fixtures/user.fixture');
-const { userOneAccessToken, adminAccessToken } = require('../../fixtures/token.fixture');
+const {
+  userOneAccessToken,
+  userTwoAccessToken,
+  adminAccessToken,
+} = require('../../fixtures/token.fixture');
 const BlogPostFactory = require('../../factories/blogPostFactory');
 const { BlogPost } = require('../../../src/models');
 const redis = require('../../../src/config/redis');
@@ -27,7 +31,6 @@ setupTestDB();
 
 describe('Blog API', () => {
   let newBlogPost;
-  let blogPostId;
 
   beforeEach(async () => {
     await insertUsers([userOne, userTwo, admin]);
@@ -105,8 +108,6 @@ describe('Blog API', () => {
         status: 'published',
         title: 'Second Test Post',
       });
-
-      blogPostId = blog1._id;
     });
 
     test('should return 200 and apply default query options', async () => {

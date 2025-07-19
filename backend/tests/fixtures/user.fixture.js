@@ -29,7 +29,7 @@ const insertUsers = async (users) => {
     users.map((user) => ({
       ...user,
       password: hashedPassword,
-    }))
+    })),
   );
 };
 

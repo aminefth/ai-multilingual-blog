@@ -8,9 +8,35 @@ const cacheMiddleware = require('../../middlewares/cache');
 const router = express.Router();
 
 /**
- * POST /v1/analytics/track
- * Track an analytics event
- * Public endpoint but can include authenticated user data
+ * @swagger
+ * tags:
+ *   name: Analytics
+ *   description: Analytics tracking and reporting
+ */
+
+/**
+ * @swagger
+ * /analytics/track:
+ *   post:
+ *     summary: Track analytics event
+ *     description: Track user interactions and events for analytics
+ *     tags: [Analytics]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - event
+ *             properties:
+ *               event:
+ *                 type: string
+ *               properties:
+ *                 type: object
+ *     responses:
+ *       "200":
+ *         description: Event tracked successfully
  */
 router.post('/track', validate(analyticsValidation.trackEvent), analyticsController.trackEvent);
 

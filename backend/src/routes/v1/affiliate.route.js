@@ -8,9 +8,45 @@ const cacheMiddleware = require('../../middlewares/cache');
 const router = express.Router();
 
 /**
- * GET /v1/affiliate/tools
- * Get all affiliate tools
- * Private endpoint (requires manageBlogPosts permission)
+ * @swagger
+ * tags:
+ *   name: Affiliate
+ *   description: Affiliate marketing and monetization
+ */
+
+/**
+ * @swagger
+ * /affiliate/tools:
+ *   get:
+ *     summary: Get affiliate tools
+ *     description: Get all available affiliate tools and products for monetization
+ *     tags: [Affiliate]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       "200":
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   category:
+ *                     type: string
+ *                   commission:
+ *                     type: number
+ *                   url:
+ *                     type: string
+ *       "401":
+ *         description: Unauthorized
+ *       "403":
+ *         description: Forbidden
  */
 router.get(
   '/tools',

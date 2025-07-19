@@ -8,9 +8,50 @@ const seoController = require('../../controllers/seo.controller');
 const router = express.Router();
 
 /**
- * POST /v1/seo/generate/:postId
- * Generate SEO metadata for a blog post
- * Private endpoint (requires manageBlogPosts permission)
+ * @swagger
+ * tags:
+ *   name: SEO
+ *   description: SEO optimization and metadata management
+ */
+
+/**
+ * @swagger
+ * /seo/generate/{postId}:
+ *   post:
+ *     summary: Generate SEO metadata
+ *     description: Auto-generate SEO metadata for a blog post using AI
+ *     tags: [SEO]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: postId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Blog post ID
+ *     responses:
+ *       "200":
+ *         description: SEO metadata generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 title:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 keywords:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *       "401":
+ *         description: Unauthorized
+ *       "403":
+ *         description: Forbidden
+ *       "404":
+ *         description: Post not found
  */
 router.post(
   '/generate/:postId',
