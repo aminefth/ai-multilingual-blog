@@ -2,7 +2,7 @@ const request = require('supertest');
 const httpStatus = require('http-status');
 const { faker } = require('@faker-js/faker');
 const moment = require('moment');
-const jwt = require('jsonwebtoken');
+// const jwt = require('jsonwebtoken'); // Unused import
 const mongoose = require('mongoose');
 const app = require('../../../src/app');
 const config = require('../../../src/config/config');
@@ -11,7 +11,7 @@ const { User, Token } = require('../../../src/models');
 const { tokenTypes } = require('../../../src/config/tokens');
 const tokenService = require('../../../src/services/token.service');
 const { userOne, insertUsers } = require('../../fixtures/user.fixture');
-const { userOneAccessToken, adminAccessToken } = require('../../fixtures/token.fixture');
+// Imports de token fixture peuvent être ajoutés si nécessaire pour d'autres tests
 
 setupTestDB();
 
@@ -45,7 +45,12 @@ describe('Auth routes', () => {
       const dbUser = await User.findById(res.body.user.id);
       expect(dbUser).toBeDefined();
       expect(dbUser.password).not.toBe(newUser.password);
-      expect(dbUser).toMatchObject({ name: newUser.name, email: newUser.email, role: 'user', isEmailVerified: false });
+      expect(dbUser).toMatchObject({
+        name: newUser.name,
+        email: newUser.email,
+        role: 'user',
+        isEmailVerified: false,
+      });
 
       expect(res.body.tokens).toEqual({
         access: { token: expect.anything(), expires: expect.anything() },
@@ -56,45 +61,30 @@ describe('Auth routes', () => {
     test('should return 400 error if email is invalid', async () => {
       newUser.email = 'invalidEmail';
 
-      await request(app)
-        .post('/v1/auth/register')
-        .send(newUser)
-        .expect(httpStatus.BAD_REQUEST);
+      await request(app).post('/v1/auth/register').send(newUser).expect(httpStatus.BAD_REQUEST);
     });
 
     test('should return 400 error if email is already used', async () => {
       await insertUsers([userOne]);
       newUser.email = userOne.email;
 
-      await request(app)
-        .post('/v1/auth/register')
-        .send(newUser)
-        .expect(httpStatus.BAD_REQUEST);
+      await request(app).post('/v1/auth/register').send(newUser).expect(httpStatus.BAD_REQUEST);
     });
 
     test('should return 400 error if password length is less than 8 characters', async () => {
       newUser.password = 'Pass1@';
 
-      await request(app)
-        .post('/v1/auth/register')
-        .send(newUser)
-        .expect(httpStatus.BAD_REQUEST);
+      await request(app).post('/v1/auth/register').send(newUser).expect(httpStatus.BAD_REQUEST);
     });
 
     test('should return 400 error if password does not contain both letters and numbers', async () => {
       newUser.password = 'password';
 
-      await request(app)
-        .post('/v1/auth/register')
-        .send(newUser)
-        .expect(httpStatus.BAD_REQUEST);
+      await request(app).post('/v1/auth/register').send(newUser).expect(httpStatus.BAD_REQUEST);
 
       newUser.password = '1111111';
 
-      await request(app)
-        .post('/v1/auth/register')
-        .send(newUser)
-        .expect(httpStatus.BAD_REQUEST);
+      await request(app).post('/v1/auth/register').send(newUser).expect(httpStatus.BAD_REQUEST);
     });
 
     test('should rate limit registration attempts', async () => {
@@ -110,9 +100,11 @@ describe('Auth routes', () => {
       }
 
       const responses = await Promise.all(promises);
-      
+
       // Check if at least one request was rate limited
-      const rateLimited = responses.some((response) => response.statusCode === httpStatus.TOO_MANY_REQUESTS);
+      const rateLimited = responses.some(
+        (response) => response.statusCode === httpStatus.TOO_MANY_REQUESTS,
+      );
       expect(rateLimited).toBe(true);
     });
   });
@@ -155,7 +147,10 @@ describe('Auth routes', () => {
         .send(loginCredentials)
         .expect(httpStatus.UNAUTHORIZED);
 
-      expect(res.body).toEqual({ code: httpStatus.UNAUTHORIZED, message: 'Incorrect email or password' });
+      expect(res.body).toEqual({
+        code: httpStatus.UNAUTHORIZED,
+        message: 'Incorrect email or password',
+      });
     });
 
     test('should return 401 error if password is wrong', async () => {
@@ -170,7 +165,10 @@ describe('Auth routes', () => {
         .send(loginCredentials)
         .expect(httpStatus.UNAUTHORIZED);
 
-      expect(res.body).toEqual({ code: httpStatus.UNAUTHORIZED, message: 'Incorrect email or password' });
+      expect(res.body).toEqual({
+        code: httpStatus.UNAUTHORIZED,
+        message: 'Incorrect email or password',
+      });
     });
   });
 
@@ -191,10 +189,7 @@ describe('Auth routes', () => {
     });
 
     test('should return 400 error if refresh token is missing from request body', async () => {
-      await request(app)
-        .post('/v1/auth/logout')
-        .send()
-        .expect(httpStatus.BAD_REQUEST);
+      await request(app).post('/v1/auth/logout').send().expect(httpStatus.BAD_REQUEST);
     });
 
     test('should return 404 error if refresh token is not found in the database', async () => {
@@ -239,7 +234,11 @@ describe('Auth routes', () => {
       });
 
       const dbRefreshTokenDoc = await Token.findOne({ token: res.body.refresh.token });
-      expect(dbRefreshTokenDoc).toMatchObject({ type: tokenTypes.REFRESH, user: userOne._id, blacklisted: false });
+      expect(dbRefreshTokenDoc).toMatchObject({
+        type: tokenTypes.REFRESH,
+        user: userOne._id,
+        blacklisted: false,
+      });
 
       const dbRefreshTokenCount = await Token.countDocuments();
       expect(dbRefreshTokenCount).toBe(1);
@@ -248,7 +247,12 @@ describe('Auth routes', () => {
     test('should return 401 error if refresh token is signed with an invalid secret', async () => {
       await insertUsers([userOne]);
       const expires = moment().add(config.jwt.refreshExpirationDays, 'days');
-      const refreshToken = tokenService.generateToken(userOne._id, expires, tokenTypes.REFRESH, 'invalidSecret');
+      const refreshToken = tokenService.generateToken(
+        userOne._id,
+        expires,
+        tokenTypes.REFRESH,
+        'invalidSecret',
+      );
       await tokenService.saveToken(refreshToken, userOne._id, expires, tokenTypes.REFRESH);
 
       await request(app)
@@ -294,6 +298,7 @@ describe('Auth routes', () => {
   });
 
   describe('POST /v1/auth/forgot-password', () => {
+    const emailService = require('../../../src/services/email.service');
     beforeEach(() => {
       jest.spyOn(emailService.transport, 'sendMail').mockResolvedValue();
     });
@@ -309,17 +314,17 @@ describe('Auth routes', () => {
 
       expect(sendResetPasswordEmailSpy).toHaveBeenCalledWith(userOne.email, expect.any(String));
       const resetPasswordToken = sendResetPasswordEmailSpy.mock.calls[0][1];
-      const dbResetPasswordTokenDoc = await Token.findOne({ token: resetPasswordToken, user: userOne._id });
+      const dbResetPasswordTokenDoc = await Token.findOne({
+        token: resetPasswordToken,
+        user: userOne._id,
+      });
       expect(dbResetPasswordTokenDoc).toBeDefined();
     });
 
     test('should return 400 if email is missing or invalid', async () => {
       await insertUsers([userOne]);
 
-      await request(app)
-        .post('/v1/auth/forgot-password')
-        .send()
-        .expect(httpStatus.BAD_REQUEST);
+      await request(app).post('/v1/auth/forgot-password').send().expect(httpStatus.BAD_REQUEST);
 
       await request(app)
         .post('/v1/auth/forgot-password')
@@ -339,8 +344,17 @@ describe('Auth routes', () => {
     test('should return 204 and reset the password', async () => {
       await insertUsers([userOne]);
       const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
-      const resetPasswordToken = tokenService.generateToken(userOne._id, expires, tokenTypes.RESET_PASSWORD);
-      await tokenService.saveToken(resetPasswordToken, userOne._id, expires, tokenTypes.RESET_PASSWORD);
+      const resetPasswordToken = tokenService.generateToken(
+        userOne._id,
+        expires,
+        tokenTypes.RESET_PASSWORD,
+      );
+      await tokenService.saveToken(
+        resetPasswordToken,
+        userOne._id,
+        expires,
+        tokenTypes.RESET_PASSWORD,
+      );
 
       await request(app)
         .post('/v1/auth/reset-password')
@@ -351,7 +365,10 @@ describe('Auth routes', () => {
       const isPasswordMatch = await dbUser.isPasswordMatch('NewPassword1@');
       expect(isPasswordMatch).toBe(true);
 
-      const dbResetPasswordTokenCount = await Token.countDocuments({ user: userOne._id, type: tokenTypes.RESET_PASSWORD });
+      const dbResetPasswordTokenCount = await Token.countDocuments({
+        user: userOne._id,
+        type: tokenTypes.RESET_PASSWORD,
+      });
       expect(dbResetPasswordTokenCount).toBe(0);
     });
 
@@ -367,8 +384,18 @@ describe('Auth routes', () => {
     test('should return 401 if reset password token is blacklisted', async () => {
       await insertUsers([userOne]);
       const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
-      const resetPasswordToken = tokenService.generateToken(userOne._id, expires, tokenTypes.RESET_PASSWORD);
-      await tokenService.saveToken(resetPasswordToken, userOne._id, expires, tokenTypes.RESET_PASSWORD, true);
+      const resetPasswordToken = tokenService.generateToken(
+        userOne._id,
+        expires,
+        tokenTypes.RESET_PASSWORD,
+      );
+      await tokenService.saveToken(
+        resetPasswordToken,
+        userOne._id,
+        expires,
+        tokenTypes.RESET_PASSWORD,
+        true,
+      );
 
       await request(app)
         .post('/v1/auth/reset-password')
@@ -379,8 +406,17 @@ describe('Auth routes', () => {
     test('should return 401 if reset password token is expired', async () => {
       await insertUsers([userOne]);
       const expires = moment().subtract(1, 'minutes');
-      const resetPasswordToken = tokenService.generateToken(userOne._id, expires, tokenTypes.RESET_PASSWORD);
-      await tokenService.saveToken(resetPasswordToken, userOne._id, expires, tokenTypes.RESET_PASSWORD);
+      const resetPasswordToken = tokenService.generateToken(
+        userOne._id,
+        expires,
+        tokenTypes.RESET_PASSWORD,
+      );
+      await tokenService.saveToken(
+        resetPasswordToken,
+        userOne._id,
+        expires,
+        tokenTypes.RESET_PASSWORD,
+      );
 
       await request(app)
         .post('/v1/auth/reset-password')
@@ -390,7 +426,11 @@ describe('Auth routes', () => {
 
     test('should return 401 if user is not found', async () => {
       const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
-      const resetPasswordToken = tokenService.generateToken(mongoose.Types.ObjectId(), expires, tokenTypes.RESET_PASSWORD);
+      const resetPasswordToken = tokenService.generateToken(
+        mongoose.Types.ObjectId(),
+        expires,
+        tokenTypes.RESET_PASSWORD,
+      );
 
       await request(app)
         .post('/v1/auth/reset-password')

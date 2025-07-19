@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const moment = require('moment');
 const tokenService = require('../../../src/services/token.service');
+// emailService est utilisé via mock
 const emailService = require('../../../src/services/email.service');
 const authService = require('../../../src/services/auth.service');
 const userService = require('../../../src/services/user.service');
@@ -26,13 +27,14 @@ describe('Auth service', () => {
         role: 'user',
         isEmailVerified: true,
       };
-      
+
       // Mock the user model findOne
+      const hashedPassword = await bcrypt.hash(user.password, 8);
       User.findOne.mockImplementationOnce(() => ({
         exec: jest.fn().mockResolvedValue({
           _id: user._id,
           email: user.email,
-          password: await bcrypt.hash(user.password, 8),
+          password: hashedPassword,
           role: user.role,
           isEmailVerified: user.isEmailVerified,
           isPasswordMatch: jest.fn().mockResolvedValue(true),
@@ -47,10 +49,10 @@ describe('Auth service', () => {
       tokenService.generateAuthTokens.mockResolvedValue(tokens);
 
       const result = await authService.loginUserWithEmailAndPassword(user.email, user.password);
-      
+
       expect(User.findOne).toHaveBeenCalledWith({ email: user.email });
       expect(result.user).toBeDefined();
-      expect(result.tokens).toBe(tokens);
+      expect(result.tokens).toEqual(tokens);
     });
 
     test('should throw an error if email does not exist', async () => {
@@ -58,8 +60,9 @@ describe('Auth service', () => {
         exec: jest.fn().mockResolvedValue(null),
       }));
 
-      await expect(authService.loginUserWithEmailAndPassword('nonexistent@example.com', 'password123'))
-        .rejects.toThrow(new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password'));
+      await expect(
+        authService.loginUserWithEmailAndPassword('nonexistent@example.com', 'password123'),
+      ).rejects.toThrow(new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password'));
     });
 
     test('should throw an error if password is incorrect', async () => {
@@ -68,19 +71,21 @@ describe('Auth service', () => {
         email: 'test@example.com',
         password: 'password123',
       };
-      
+
       // Mock the user model findOne
+      const hashedPassword = await bcrypt.hash(user.password, 8);
       User.findOne.mockImplementationOnce(() => ({
         exec: jest.fn().mockResolvedValue({
           _id: user._id,
           email: user.email,
-          password: await bcrypt.hash(user.password, 8),
+          password: hashedPassword,
           isPasswordMatch: jest.fn().mockResolvedValue(false),
         }),
       }));
 
-      await expect(authService.loginUserWithEmailAndPassword(user.email, 'wrongpassword'))
-        .rejects.toThrow(new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password'));
+      await expect(
+        authService.loginUserWithEmailAndPassword(user.email, 'wrongpassword'),
+      ).rejects.toThrow(new ApiError(httpStatus.UNAUTHORIZED, 'Incorrect email or password'));
     });
 
     test('should throw an error if user email is not verified', async () => {
@@ -90,20 +95,22 @@ describe('Auth service', () => {
         password: 'password123',
         isEmailVerified: false,
       };
-      
+
       // Mock the user model findOne
+      const hashedPassword = await bcrypt.hash(user.password, 8);
       User.findOne.mockImplementationOnce(() => ({
         exec: jest.fn().mockResolvedValue({
           _id: user._id,
           email: user.email,
-          password: await bcrypt.hash(user.password, 8),
+          password: hashedPassword,
           isEmailVerified: user.isEmailVerified,
           isPasswordMatch: jest.fn().mockResolvedValue(true),
         }),
       }));
 
-      await expect(authService.loginUserWithEmailAndPassword(user.email, user.password))
-        .rejects.toThrow(new ApiError(httpStatus.UNAUTHORIZED, 'Please verify your email'));
+      await expect(
+        authService.loginUserWithEmailAndPassword(user.email, user.password),
+      ).rejects.toThrow(new ApiError(httpStatus.UNAUTHORIZED, 'Please verify your email'));
     });
   });
 
@@ -128,8 +135,9 @@ describe('Auth service', () => {
     test('should throw an error if refresh token is not found', async () => {
       Token.findOne.mockResolvedValue(null);
 
-      await expect(authService.logout('nonexistent-token'))
-        .rejects.toThrow(new ApiError(httpStatus.NOT_FOUND, 'Token not found'));
+      await expect(authService.logout('nonexistent-token')).rejects.toThrow(
+        new ApiError(httpStatus.NOT_FOUND, 'Token not found'),
+      );
     });
   });
 
@@ -166,7 +174,9 @@ describe('Auth service', () => {
 
       expect(tokenService.verifyToken).toHaveBeenCalledWith(refreshToken, tokenTypes.REFRESH);
       expect(userService.getUserById).toHaveBeenCalledWith(userId);
-      expect(tokenService.generateAuthTokens).toHaveBeenCalledWith(expect.objectContaining({ _id: userId }));
+      expect(tokenService.generateAuthTokens).toHaveBeenCalledWith(
+        expect.objectContaining({ _id: userId }),
+      );
       expect(result.user).toEqual(user);
       expect(result.tokens).toEqual(newTokens);
     });
@@ -181,8 +191,9 @@ describe('Auth service', () => {
 
       Token.findOne.mockResolvedValue(tokenDoc);
 
-      await expect(authService.refreshAuth(refreshToken))
-        .rejects.toThrow(new ApiError(httpStatus.UNAUTHORIZED, 'Token is blacklisted'));
+      await expect(authService.refreshAuth(refreshToken)).rejects.toThrow(
+        new ApiError(httpStatus.UNAUTHORIZED, 'Token is blacklisted'),
+      );
     });
 
     test('should throw an error if refresh token is expired', async () => {
@@ -195,8 +206,9 @@ describe('Auth service', () => {
         expires: moment().subtract(1, 'day').toDate(),
       });
 
-      await expect(authService.refreshAuth(refreshToken))
-        .rejects.toThrow(new ApiError(httpStatus.UNAUTHORIZED, 'Token expired'));
+      await expect(authService.refreshAuth(refreshToken)).rejects.toThrow(
+        new ApiError(httpStatus.UNAUTHORIZED, 'Token expired'),
+      );
     });
   });
 
@@ -225,16 +237,23 @@ describe('Auth service', () => {
 
       await authService.resetPassword(resetPasswordToken, newPassword);
 
-      expect(tokenService.verifyToken).toHaveBeenCalledWith(resetPasswordToken, tokenTypes.RESET_PASSWORD);
+      expect(tokenService.verifyToken).toHaveBeenCalledWith(
+        resetPasswordToken,
+        tokenTypes.RESET_PASSWORD,
+      );
       expect(userService.updateUserById).toHaveBeenCalledWith(userId, { password: newPassword });
-      expect(Token.deleteMany).toHaveBeenCalledWith({ user: userId, type: tokenTypes.RESET_PASSWORD });
+      expect(Token.deleteMany).toHaveBeenCalledWith({
+        user: userId,
+        type: tokenTypes.RESET_PASSWORD,
+      });
     });
 
     test('should throw error if reset password token is invalid', async () => {
       Token.findOne.mockResolvedValue(null);
 
-      await expect(authService.resetPassword('invalid-token', 'newpassword123'))
-        .rejects.toThrow(new ApiError(httpStatus.NOT_FOUND, 'Token not found'));
+      await expect(authService.resetPassword('invalid-token', 'newpassword123')).rejects.toThrow(
+        new ApiError(httpStatus.NOT_FOUND, 'Token not found'),
+      );
     });
   });
 
@@ -263,16 +282,23 @@ describe('Auth service', () => {
 
       await authService.verifyEmail(verifyEmailToken);
 
-      expect(tokenService.verifyToken).toHaveBeenCalledWith(verifyEmailToken, tokenTypes.VERIFY_EMAIL);
+      expect(tokenService.verifyToken).toHaveBeenCalledWith(
+        verifyEmailToken,
+        tokenTypes.VERIFY_EMAIL,
+      );
       expect(userService.updateUserById).toHaveBeenCalledWith(userId, { isEmailVerified: true });
-      expect(Token.deleteMany).toHaveBeenCalledWith({ user: userId, type: tokenTypes.VERIFY_EMAIL });
+      expect(Token.deleteMany).toHaveBeenCalledWith({
+        user: userId,
+        type: tokenTypes.VERIFY_EMAIL,
+      });
     });
 
     test('should throw error if verify email token is invalid', async () => {
       Token.findOne.mockResolvedValue(null);
 
-      await expect(authService.verifyEmail('invalid-token'))
-        .rejects.toThrow(new ApiError(httpStatus.NOT_FOUND, 'Token not found'));
+      await expect(authService.verifyEmail('invalid-token')).rejects.toThrow(
+        new ApiError(httpStatus.NOT_FOUND, 'Token not found'),
+      );
     });
   });
 
@@ -284,7 +310,7 @@ describe('Auth service', () => {
       const user = {
         _id: userId,
         email: 'test@example.com',
-        password: await bcrypt.hash(currentPassword, 8),
+        password: 'hashed-password', // Pour simplifier le test
         isPasswordMatch: jest.fn().mockResolvedValue(true),
       };
 
@@ -308,8 +334,9 @@ describe('Auth service', () => {
 
       userService.getUserById.mockResolvedValue(user);
 
-      await expect(authService.changePassword(userId, 'wrong-password', 'new-password'))
-        .rejects.toThrow(new ApiError(httpStatus.UNAUTHORIZED, 'Current password is incorrect'));
+      await expect(
+        authService.changePassword(userId, 'wrong-password', 'new-password'),
+      ).rejects.toThrow(new ApiError(httpStatus.UNAUTHORIZED, 'Current password is incorrect'));
     });
   });
 });

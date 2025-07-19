@@ -1,0 +1,21 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Installer les dépendances globales
+RUN npm install -g nodemon
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Installer les dépendances en incluant les dépendances de développement
+RUN npm install --include=dev
+
+# Copier les fichiers sources
+COPY . .
+
+# Exposer le port pour le backend de test
+EXPOSE 3001
+
+# Commande pour exécuter les tests ou démarrer le serveur en mode test
+CMD ["npm", "run", "start:test"]

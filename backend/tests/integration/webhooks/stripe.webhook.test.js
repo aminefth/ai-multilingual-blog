@@ -18,11 +18,8 @@ jest.mock('../../../src/config/config', () => ({
 const createStripeSignature = (payload, secret) => {
   const timestamp = Math.floor(Date.now() / 1000);
   const signedPayload = `${timestamp}.${JSON.stringify(payload)}`;
-  const signature = crypto
-    .createHmac('sha256', secret)
-    .update(signedPayload)
-    .digest('hex');
-  
+  const signature = crypto.createHmac('sha256', secret).update(signedPayload).digest('hex');
+
   return `t=${timestamp},v1=${signature}`;
 };
 
@@ -96,7 +93,7 @@ describe('Stripe Webhooks', () => {
       // Create webhook payload for subscription update
       const subscriptionId = 'sub_old123';
       const newPeriodEnd = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
-      
+
       const payload = {
         id: 'evt_update123',
         object: 'event',

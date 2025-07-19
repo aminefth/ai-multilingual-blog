@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # Base de données MongoDB pour test
+  mongodb-test:
+    image: mongo:6.0
+    container_name: mongodb-test
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=ai-blog-test
+    volumes:
+      - mongodb-test-data:/data/db
+    networks:
+      - test-network
+    command: mongod --logpath=/dev/null # Désactive les logs verbeux
+
+  # Cache Redis pour test
+  redis-test:
+    image: redis:7.0-alpine
+    container_name: redis-test
+    ports:
+      - "6379:6379"
+    networks:
+      - test-network
+    volumes:
+      - redis-test-data:/data
+
+  # Service de mailing fictif
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog-test
+    ports:
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web UI port
+    networks:
+      - test-network
+
+  # Service de mock pour APIs externes (Stripe, OpenAI)
+  mockoon:
+    image: mockoon/cli:latest
+    container_name: mockoon-test
+    ports:
+      - "3002:3002" # Stripe Mock API
+      - "3003:3003" # OpenAI Mock API
+    command: ["start", "--data", "/mockoon-data/mockoon.json"]
+    volumes:
+      - ./tests/mocks/mockoon-data:/mockoon-data
+    networks:
+      - test-network
+
+  # Tests avec dépendances
+  test-runner:
+    image: node:20-alpine
+    container_name: test-runner
+    depends_on:
+      - mongodb-test
+      - redis-test
+      - mailhog
+      - mockoon
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - NODE_ENV=test
+      - MONGODB_URI=mongodb://mongodb-test:27017/ai-blog-test
+      - REDIS_URL=redis://redis-test:6379
+      - SMTP_HOST=mailhog
+      - SMTP_PORT=1025
+      - STRIPE_SECRET_KEY=sk_test_mock
+      - OPENAI_API_KEY=sk_test_mock
+      - STRIPE_API_BASE=http://mockoon:3002
+      - OPENAI_API_BASE=http://mockoon:3003
+    command: sh -c "npm install && npm run test"
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge
+
+volumes:
+  mongodb-test-data:
+  redis-test-data:

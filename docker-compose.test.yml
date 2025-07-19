@@ -1,0 +1,142 @@
+version: '3.8'
+
+services:
+  # Base de données MongoDB pour les tests
+  mongodb-test:
+    image: mongo:6.0
+    container_name: mongodb-test
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=testuser
+      - MONGO_INITDB_ROOT_PASSWORD=testpassword
+      - MONGO_INITDB_DATABASE=blog_test
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb-test-data:/data/db
+    command: mongod --quiet
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis pour les tests de cache
+  redis-test:
+    image: redis:7.0-alpine
+    container_name: redis-test
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Service de mail pour capturer les emails envoyés (Mailhog)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog-test
+    ports:
+      - "1025:1025"  # SMTP server
+      - "8025:8025"  # Web UI
+    environment:
+      - MH_STORAGE=memory
+
+  # Mock API pour simuler Stripe
+  stripe-mock:
+    image: stripemock/stripe-mock:latest
+    container_name: stripe-mock
+    ports:
+      - "12111:12111"
+      - "12112:12112"
+    environment:
+      - STRIPE_BASE_URL=http://localhost:12111
+
+  # Mock API pour simuler OpenAI
+  openai-mock:
+    image: nginx:alpine
+    container_name: openai-mock
+    ports:
+      - "8081:80"
+    volumes:
+      - ./backend/tests/mocks/openai-mock:/usr/share/nginx/html
+      - ./backend/tests/mocks/openai-mock.conf:/etc/nginx/conf.d/default.conf
+
+  # Backend pour les tests
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.test
+    container_name: backend-test
+    depends_on:
+      mongodb-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+      stripe-mock:
+        condition: service_started
+      openai-mock:
+        condition: service_started
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=test
+      - PORT=3001
+      - MONGODB_URI=mongodb://testuser:testpassword@mongodb-test:27017/blog_test?authSource=admin
+      - REDIS_URL=redis://redis-test:6379
+      - JWT_SECRET=test_secret_key_for_tests
+      - JWT_ACCESS_EXPIRATION=15m
+      - JWT_REFRESH_EXPIRATION=7d
+      - STRIPE_SECRET_KEY=sk_test_mock
+      - STRIPE_WEBHOOK_SECRET=whsec_test_mock
+      - STRIPE_API_BASE=http://stripe-mock:12111
+      - OPENAI_API_KEY=sk-mock-openai-key
+      - OPENAI_API_BASE=http://openai-mock:80/v1
+      - EMAIL_FROM=test@example.com
+      - EMAIL_USERNAME=test@example.com
+      - EMAIL_PASSWORD=testpass
+      - EMAIL_HOST=mailhog
+      - EMAIL_PORT=1025
+      - EMAIL_SECURE=false
+      - FRONTEND_URL=http://frontend-test:3000
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  # Frontend pour les tests E2E
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.test
+    container_name: frontend-test
+    depends_on:
+      - backend-test
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=test
+      - VITE_API_URL=http://backend-test:3001
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  # Service Playwright pour exécuter les tests E2E
+  playwright:
+    build:
+      context: ./e2e
+      dockerfile: Dockerfile.playwright
+    container_name: playwright-test
+    depends_on:
+      - frontend-test
+      - backend-test
+    environment:
+      - PLAYWRIGHT_BASE_URL=http://frontend-test:3000
+      - CI=true
+    volumes:
+      - ./e2e:/app
+      - ./playwright-results:/app/test-results
+
+volumes:
+  mongodb-test-data:

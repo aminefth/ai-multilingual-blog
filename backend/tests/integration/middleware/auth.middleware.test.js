@@ -25,7 +25,7 @@ describe('Auth middleware', () => {
       const res = await request(app)
         .get('/api/v1/users/profile')
         .set('Authorization', 'Bearer invalid-token');
-      
+
       expect(res.status).toBe(httpStatus.UNAUTHORIZED);
     });
 
@@ -38,7 +38,7 @@ describe('Auth middleware', () => {
       const res = await request(app)
         .get('/api/v1/users/profile')
         .set('Authorization', `Bearer ${userOneAccessToken}`);
-      
+
       expect(res.status).toBe(httpStatus.UNAUTHORIZED);
       expect(res.body.message).toBe('Token expired');
     });
@@ -47,7 +47,7 @@ describe('Auth middleware', () => {
       const res = await request(app)
         .get('/api/v1/users/profile')
         .set('Authorization', `Bearer ${userOneAccessToken}`);
-      
+
       expect(res.status).toBe(httpStatus.OK);
       expect(res.body).toHaveProperty('email', userOne.email);
     });
@@ -58,7 +58,7 @@ describe('Auth middleware', () => {
       const res = await request(app)
         .get('/api/v1/admin/stats')
         .set('Authorization', `Bearer ${userOneAccessToken}`);
-      
+
       expect(res.status).toBe(httpStatus.FORBIDDEN);
       expect(res.body.message).toBe('Forbidden');
     });
@@ -67,7 +67,7 @@ describe('Auth middleware', () => {
       const res = await request(app)
         .get('/api/v1/admin/stats')
         .set('Authorization', `Bearer ${adminAccessToken}`);
-      
+
       expect(res.status).toBe(httpStatus.OK);
     });
   });
@@ -77,16 +77,16 @@ describe('Auth middleware', () => {
       const res = await request(app)
         .post('/api/v1/users/change-password')
         .set('Authorization', `Bearer ${userOneAccessToken}`)
-        .send({ 
+        .send({
           currentPassword: 'password1',
-          newPassword: 'newpassword123'
+          newPassword: 'newpassword123',
         });
-      
+
       // Status code will depend on your CSRF implementation
       expect(res.status).toBeOneOf([
-        httpStatus.FORBIDDEN, 
-        httpStatus.UNAUTHORIZED, 
-        httpStatus.BAD_REQUEST
+        httpStatus.FORBIDDEN,
+        httpStatus.UNAUTHORIZED,
+        httpStatus.BAD_REQUEST,
       ]);
     });
   });
@@ -95,26 +95,22 @@ describe('Auth middleware', () => {
     test('should apply rate limiting on login attempts', async () => {
       const loginCredentials = {
         email: 'wrong@example.com',
-        password: 'wrongpassword'
+        password: 'wrongpassword',
       };
 
       // Make multiple failed login attempts
       const requests = [];
       for (let i = 0; i < 10; i++) {
-        requests.push(
-          request(app)
-            .post('/api/v1/auth/login')
-            .send(loginCredentials)
-        );
+        requests.push(request(app).post('/api/v1/auth/login').send(loginCredentials));
       }
 
       const responses = await Promise.all(requests);
-      
+
       // At least one of the responses should be rate limited
-      const rateLimitedResponse = responses.find(res => 
-        res.status === httpStatus.TOO_MANY_REQUESTS
+      const rateLimitedResponse = responses.find(
+        (res) => res.status === httpStatus.TOO_MANY_REQUESTS,
       );
-      
+
       expect(rateLimitedResponse).toBeDefined();
       expect(rateLimitedResponse.body).toHaveProperty('message');
       expect(rateLimitedResponse.headers).toHaveProperty('retry-after');
