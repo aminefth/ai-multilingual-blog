@@ -1,6 +1,7 @@
 const express = require('express');
 const validate = require('../../middlewares/validate');
 const auth = require('../../middlewares/auth');
+const { csrfProtection } = require('../../middlewares/csrf.middleware');
 const adminValidation = require('../../validations/admin.validation');
 const adminController = require('../../controllers/admin.controller');
 const cacheMiddleware = require('../../middlewares/cache');
@@ -64,6 +65,7 @@ router.get('/users', auth('admin'), validate(adminValidation.getUsers), adminCon
 router.patch(
   '/users/:userId/roles',
   auth('admin'),
+  csrfProtection,
   validate(adminValidation.updateUserRoles),
   adminController.updateUserRoles,
 );
@@ -81,6 +83,7 @@ router.get('/approvals', auth('admin'), adminController.getPendingApprovals);
 router.patch(
   '/approvals/:postId',
   auth('admin'),
+  csrfProtection,
   validate(adminValidation.updateApprovalStatus),
   adminController.updateApprovalStatus,
 );
@@ -103,6 +106,7 @@ router.get(
 router.patch(
   '/settings',
   auth('admin'),
+  csrfProtection,
   validate(adminValidation.updateSystemSettings),
   adminController.updateSystemSettings,
 );
@@ -114,6 +118,7 @@ router.patch(
 router.post(
   '/cache/clear',
   auth('admin'),
+  csrfProtection,
   validate(adminValidation.clearCache),
   adminController.clearCache,
 );

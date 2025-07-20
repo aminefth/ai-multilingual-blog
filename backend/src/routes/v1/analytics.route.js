@@ -1,6 +1,7 @@
 const express = require('express');
 const validate = require('../../middlewares/validate');
 const auth = require('../../middlewares/auth');
+const { csrfProtection } = require('../../middlewares/csrf.middleware');
 const analyticsValidation = require('../../validations/analytics.validation');
 const analyticsController = require('../../controllers/analytics.controller');
 const cacheMiddleware = require('../../middlewares/cache');
@@ -242,7 +243,12 @@ const router = express.Router();
  *               message: "Admin permissions required to access revenue analytics"
  */
 
-router.post('/track', validate(analyticsValidation.trackEvent), analyticsController.trackEvent);
+router.post(
+  '/track',
+  csrfProtection,
+  validate(analyticsValidation.trackEvent),
+  analyticsController.trackEvent,
+);
 
 // Note: Dashboard and revenue routes are defined below with proper middleware
 

@@ -2,6 +2,7 @@ const express = require('express');
 const validate = require('../../middlewares/validate');
 const auth = require('../../middlewares/auth');
 const cacheMiddleware = require('../../middlewares/cache');
+const { csrfProtection } = require('../../middlewares/csrf.middleware');
 const blogValidation = require('../../validations/blog.validation');
 const blogController = require('../../controllers/blog.controller');
 
@@ -410,8 +411,18 @@ router
 router
   .route('/:id')
   .get(validate(blogValidation.getPost), blogController.getPost)
-  .put(auth('manageBlogPosts'), validate(blogValidation.updatePost), blogController.updatePost)
-  .delete(auth('manageBlogPosts'), validate(blogValidation.deletePost), blogController.deletePost);
+  .put(
+    auth('manageBlogPosts'),
+    csrfProtection,
+    validate(blogValidation.updatePost),
+    blogController.updatePost,
+  )
+  .delete(
+    auth('manageBlogPosts'),
+    csrfProtection,
+    validate(blogValidation.deletePost),
+    blogController.deletePost,
+  );
 
 // Special route for getting post by slug
 router.get('/slug/:slug', validate(blogValidation.getPostBySlug), blogController.getPostBySlug);
@@ -420,6 +431,7 @@ router.get('/slug/:slug', validate(blogValidation.getPostBySlug), blogController
 router.post(
   '/:id/translate',
   auth('manageTranslations'),
+  csrfProtection,
   validate(blogValidation.translatePost),
   blogController.translatePost,
 );
@@ -428,6 +440,7 @@ router.post(
 router.put(
   '/:id/seo',
   auth('manageBlogPosts'),
+  csrfProtection,
   validate(blogValidation.updateSEO),
   blogController.updateSEO,
 );
@@ -522,6 +535,7 @@ router.put(
 // Route for tracking affiliate link clicks
 router.post(
   '/:id/affiliate-click',
+  csrfProtection,
   validate(blogValidation.trackAffiliateClick),
   blogController.trackAffiliateClick,
 );

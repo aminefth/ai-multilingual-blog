@@ -2,6 +2,7 @@ const express = require('express');
 const validate = require('../../middlewares/validate');
 const auth = require('../../middlewares/auth');
 const cacheMiddleware = require('../../middlewares/cache');
+const { csrfProtection } = require('../../middlewares/csrf.middleware');
 const translationValidation = require('../../validations/translation.validation');
 const translationController = require('../../controllers/translation.controller');
 
@@ -63,6 +64,7 @@ router.get(
 router.post(
   '/translate',
   auth('manageBlogPosts'),
+  csrfProtection,
   validate(translationValidation.translateContent),
   translationController.translateContent,
 );
@@ -87,6 +89,7 @@ router.get(
 router.put(
   '/:language',
   auth('manageTranslations'),
+  csrfProtection,
   validate(translationValidation.updateTranslations),
   translationController.updateTranslations,
 );

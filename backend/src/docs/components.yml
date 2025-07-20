@@ -47,6 +47,151 @@ components:
         message:
           type: string
 
+    # ===== SECURITY SCHEMAS =====
+    CSRFToken:
+      type: object
+      properties:
+        token:
+          type: string
+          description: CSRF protection token
+        expires:
+          type: string
+          format: date-time
+          description: Token expiration time
+      example:
+        token: 'csrf_1234567890abcdef1234567890abcdef'
+        expires: '2024-01-01T12:00:00.000Z'
+
+    ApiKey:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique API key identifier
+        key:
+          type: string
+          description: The API key (only shown on creation)
+        clientId:
+          type: string
+          description: Client identifier
+        permissions:
+          type: array
+          items:
+            type: string
+            enum: [read, write, admin]
+          description: API key permissions
+        ipWhitelist:
+          type: array
+          items:
+            type: string
+          description: Allowed IP addresses
+        expiresAt:
+          type: string
+          format: date-time
+          description: Key expiration date
+        createdAt:
+          type: string
+          format: date-time
+        lastUsed:
+          type: string
+          format: date-time
+        usageCount:
+          type: integer
+          description: Number of times the key has been used
+      example:
+        id: 'api_key_1234567890'
+        key: 'ak_live_1234567890abcdef1234567890abcdef'
+        clientId: 'client_blog_api'
+        permissions: ['read', 'write']
+        ipWhitelist: ['192.168.1.100', '10.0.0.0/8']
+        expiresAt: '2024-12-31T23:59:59.000Z'
+        createdAt: '2024-01-01T00:00:00.000Z'
+        lastUsed: '2024-01-15T10:30:00.000Z'
+        usageCount: 1250
+
+    ApiKeyStats:
+      type: object
+      properties:
+        totalKeys:
+          type: integer
+          description: Total number of API keys
+        activeKeys:
+          type: integer
+          description: Number of active (non-expired) keys
+        expiredKeys:
+          type: integer
+          description: Number of expired keys
+        totalUsage:
+          type: integer
+          description: Total API calls across all keys
+        lastActivity:
+          type: string
+          format: date-time
+          description: Last API key usage timestamp
+      example:
+        totalKeys: 15
+        activeKeys: 12
+        expiredKeys: 3
+        totalUsage: 45678
+        lastActivity: '2024-01-15T14:22:33.000Z'
+
+    WebhookEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Event identifier
+        type:
+          type: string
+          description: Event type
+        data:
+          type: object
+          description: Event payload data
+        timestamp:
+          type: integer
+          description: Event timestamp (Unix)
+        signature:
+          type: string
+          description: HMAC signature for verification
+      example:
+        id: 'evt_1234567890abcdef'
+        type: 'user.subscription.created'
+        data:
+          userId: 'user_123'
+          subscriptionId: 'sub_456'
+        timestamp: 1704097600
+        signature: 'sha256=a1b2c3d4e5f6...'
+
+    WebhookStats:
+      type: object
+      properties:
+        configuredProviders:
+          type: array
+          items:
+            type: string
+          description: List of configured webhook providers
+        totalProviders:
+          type: integer
+          description: Number of configured providers
+        supportedFormats:
+          type: array
+          items:
+            type: string
+          description: Supported signature formats
+        securityFeatures:
+          type: array
+          items:
+            type: string
+          description: Security features implemented
+      example:
+        configuredProviders: ['stripe', 'github', 'custom']
+        totalProviders: 3
+        supportedFormats: ['simple', 'stripe', 'github']
+        securityFeatures:
+          - 'HMAC signature verification'
+          - 'Timestamp validation'
+          - 'Timing-safe comparison'
+
     # ===== BLOG & CONTENT SCHEMAS =====
     BlogPost:
       type: object

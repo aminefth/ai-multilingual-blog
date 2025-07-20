@@ -30,6 +30,18 @@ const swaggerDef = {
         scheme: 'bearer',
         bearerFormat: 'JWT',
       },
+      apiKeyAuth: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'X-API-Key',
+        description: 'API Key authentication for external integrations',
+      },
+      webhookSignature: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'X-Webhook-Signature',
+        description: 'HMAC signature for webhook verification (provider-specific)',
+      },
     },
   },
   security: [

@@ -2,6 +2,7 @@ const express = require('express');
 const validate = require('../../middlewares/validate');
 const auth = require('../../middlewares/auth');
 const cacheMiddleware = require('../../middlewares/cache');
+const { csrfProtection } = require('../../middlewares/csrf.middleware');
 const seoValidation = require('../../validations/seo.validation');
 const seoController = require('../../controllers/seo.controller');
 
@@ -56,6 +57,7 @@ const router = express.Router();
 router.post(
   '/generate/:postId',
   auth('manageBlogPosts'),
+  csrfProtection,
   validate(seoValidation.generateSEOMetadata),
   seoController.generateSEOMetadata,
 );
@@ -68,6 +70,7 @@ router.post(
 router.put(
   '/:postId',
   auth('manageBlogPosts'),
+  csrfProtection,
   validate(seoValidation.updateSEOMetadata),
   seoController.updateSEOMetadata,
 );
@@ -105,6 +108,7 @@ router.get(
 router.put(
   '/site-settings',
   auth('admin'),
+  csrfProtection,
   validate(seoValidation.updateSiteSEOSettings),
   seoController.updateSiteSEOSettings,
 );

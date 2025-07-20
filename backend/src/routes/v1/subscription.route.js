@@ -1,6 +1,7 @@
 const express = require('express');
-const { auth } = require('../../middlewares/auth');
+const auth = require('../../middlewares/auth');
 const validate = require('../../middlewares/validate');
+const { csrfProtection } = require('../../middlewares/csrf.middleware');
 const subscriptionValidation = require('../../validations/subscription.validation');
 const subscriptionController = require('../../controllers/subscription.controller');
 
@@ -790,14 +791,19 @@ const router = express.Router();
  *         $ref: '#/components/responses/Unauthorized'
  */
 
-router.get('/plans', validate(subscriptionValidation.getPlans), subscriptionController.getPlans);
+router.get(
+  '/plans',
+  validate(subscriptionValidation.getPlans),
+  subscriptionController.getSubscriptionPlans,
+);
 
 // Create new subscription
 router.post(
   '/subscribe',
   auth('manageOwnSubscription'),
+  csrfProtection,
   validate(subscriptionValidation.createSubscription),
-  subscriptionController.createSubscription,
+  subscriptionController.createCheckoutSession,
 );
 
 // Get current user subscription
@@ -805,13 +811,14 @@ router.get(
   '/current',
   auth('manageOwnSubscription'),
   validate(subscriptionValidation.getCurrentSubscription),
-  subscriptionController.getCurrentSubscription,
+  subscriptionController.getUserSubscription,
 );
 
 // Update subscription (upgrade/downgrade)
 router.patch(
   '/current',
   auth('manageOwnSubscription'),
+  csrfProtection,
   validate(subscriptionValidation.updateSubscription),
   subscriptionController.updateSubscription,
 );
@@ -820,6 +827,7 @@ router.patch(
 router.delete(
   '/current',
   auth('manageOwnSubscription'),
+  csrfProtection,
   validate(subscriptionValidation.cancelSubscription),
   subscriptionController.cancelSubscription,
 );

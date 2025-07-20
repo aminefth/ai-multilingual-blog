@@ -9,6 +9,9 @@ const subscriptionRoute = require('./subscription.route');
 const analyticsRoute = require('./analytics.route');
 const affiliateRoute = require('./affiliate.route');
 const adminRoute = require('./admin.route');
+const csrfRoute = require('./csrf.route');
+const apiKeyRoute = require('./apiKey.route');
+const webhookRoute = require('./webhook.route');
 const config = require('../../config/config');
 
 const router = express.Router();
@@ -49,6 +52,18 @@ const defaultRoutes = [
   {
     path: '/admin',
     route: adminRoute,
+  },
+  {
+    path: '/csrf',
+    route: csrfRoute,
+  },
+  {
+    path: '/api-keys',
+    route: apiKeyRoute,
+  },
+  {
+    path: '/webhooks',
+    route: webhookRoute,
   },
 ];
 

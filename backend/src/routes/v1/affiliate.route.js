@@ -1,6 +1,7 @@
 const express = require('express');
 const validate = require('../../middlewares/validate');
 const auth = require('../../middlewares/auth');
+const { csrfProtection } = require('../../middlewares/csrf.middleware');
 const affiliateValidation = require('../../validations/affiliate.validation');
 const affiliateController = require('../../controllers/affiliate.controller');
 const cacheMiddleware = require('../../middlewares/cache');
@@ -62,6 +63,7 @@ router.get(
  */
 router.post(
   '/track',
+  csrfProtection,
   validate(affiliateValidation.trackAffiliateClick),
   affiliateController.trackAffiliateClick,
 );
@@ -74,6 +76,7 @@ router.post(
 router.post(
   '/conversion',
   auth('admin'),
+  csrfProtection,
   validate(affiliateValidation.registerConversion),
   affiliateController.registerConversion,
 );
@@ -99,6 +102,7 @@ router.get(
 router.post(
   '/links',
   auth('manageBlogPosts'),
+  csrfProtection,
   validate(affiliateValidation.addAffiliateLink),
   affiliateController.addAffiliateLink,
 );
