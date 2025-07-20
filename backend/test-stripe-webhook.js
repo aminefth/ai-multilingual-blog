@@ -102,25 +102,21 @@ async function testInvalidWebhook() {
   const invalidSignature = `t=${timestamp},v1=invalid_signature`;
 
   try {
-    const response = await axios.post(WEBHOOK_URL, testEvent, {
+    await axios.post(WEBHOOK_URL, testEvent, {
       headers: {
         'Content-Type': 'application/json',
         'Stripe-Signature': invalidSignature,
       },
     });
 
-    console.log('❌ Problème: Le webhook a accepté une signature invalide!');
+    // Should not reach here - invalid signature should be rejected
     return false;
   } catch (error) {
     if (error.response?.status === 400) {
-      console.log('✅ Succès: Signature invalide correctement rejetée');
+      // Success: Invalid signature correctly rejected
       return true;
     } else {
-      console.log(
-        '❌ Erreur inattendue:',
-        error.response?.status,
-        error.response?.data || error.message,
-      );
+      // Unexpected error occurred
       return false;
     }
   }

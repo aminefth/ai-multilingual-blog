@@ -76,7 +76,6 @@ export default function AdminDashboard() {
         new_role: newRole,
       });
     } catch (error) {
-      console.error('Role update error:', error);
       showToast('Failed to update user role', 'error');
     }
   };

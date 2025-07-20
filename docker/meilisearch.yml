@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  meilisearch:
+    image: getmeili/meilisearch:v1.5
+    container_name: ai-blog-meilisearch
+    ports:
+      - "7700:7700"
+    environment:
+      - MEILI_ENV=development
+      - MEILI_MASTER_KEY=your-master-key-here
+      - MEILI_NO_ANALYTICS=true
+      - MEILI_HTTP_ADDR=0.0.0.0:7700
+      - MEILI_LOG_LEVEL=INFO
+    volumes:
+      - meilisearch_data:/meili_data
+    networks:
+      - ai-blog-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  meilisearch_data:
+    driver: local
+
+networks:
+  ai-blog-network:
+    driver: bridge

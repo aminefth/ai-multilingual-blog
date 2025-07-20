@@ -12,6 +12,7 @@ const adminRoute = require('./admin.route');
 const csrfRoute = require('./csrf.route');
 const apiKeyRoute = require('./apiKey.route');
 const webhookRoute = require('./webhook.route');
+const searchRoute = require('./search.route');
 const config = require('../../config/config');
 
 const router = express.Router();
@@ -64,6 +65,10 @@ const defaultRoutes = [
   {
     path: '/webhooks',
     route: webhookRoute,
+  },
+  {
+    path: '/search',
+    route: searchRoute,
   },
 ];
 

@@ -1,16 +1,17 @@
-import { Inter, Playfair_Display, JetBrains_Mono } from 'next/font/google';
-import { ThemeProvider } from '@/components/providers/ThemeProvider';
-import { QueryProvider } from '@/components/providers/QueryProvider';
-import { AuthProvider } from '@/components/providers/AuthProvider';
-import { AnalyticsProvider } from '@/components/providers/AnalyticsProvider';
-import { I18nProvider } from '@/components/providers/I18nProvider';
-import { ToastProvider } from '@/components/providers/ToastProvider';
-import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
+import { Header } from '@/components/layout/Header';
+import { AnalyticsProvider } from '@/components/providers/AnalyticsProvider';
+import { AuthProvider } from '@/components/providers/AuthProvider';
+import { I18nProvider } from '@/components/providers/I18nProvider';
+import KBarProvider from '@/components/providers/KBarProvider';
+import { QueryProvider } from '@/components/providers/QueryProvider';
+import { ThemeProvider } from '@/components/providers/ThemeProvider';
+import { ToastProvider } from '@/components/providers/ToastProvider';
+import { StructuredData } from '@/components/seo/StructuredData';
 import { CookieConsent } from '@/components/ui/CookieConsent';
 import { ProgressBar } from '@/components/ui/ProgressBar';
-import { StructuredData } from '@/components/seo/StructuredData';
 import '@/styles/globals.css';
+import { Inter, JetBrains_Mono, Playfair_Display } from 'next/font/google';
 
 // Optimized font loading
 const inter = Inter({
@@ -281,26 +282,28 @@ export default function RootLayout({ children, params }) {
           <QueryProvider>
             <AuthProvider>
               <I18nProvider locale={locale}>
-                <AnalyticsProvider>
-                  <div className="flex min-h-screen flex-col">
-                    {/* Header */}
-                    <Header locale={locale} />
+                <KBarProvider>
+                  <AnalyticsProvider>
+                    <div className="flex min-h-screen flex-col">
+                      {/* Header */}
+                      <Header locale={locale} />
 
-                    {/* Main content */}
-                    <main className="flex-1" role="main">
-                      {children}
-                    </main>
+                      {/* Main content */}
+                      <main className="flex-1" role="main">
+                        {children}
+                      </main>
 
-                    {/* Footer */}
-                    <Footer locale={locale} />
-                  </div>
+                      {/* Footer */}
+                      <Footer locale={locale} />
+                    </div>
 
-                  {/* Toast notifications */}
-                  <ToastProvider />
+                    {/* Toast notifications */}
+                    <ToastProvider />
 
-                  {/* Cookie consent */}
-                  <CookieConsent />
-                </AnalyticsProvider>
+                    {/* Cookie consent */}
+                    <CookieConsent />
+                  </AnalyticsProvider>
+                </KBarProvider>
               </I18nProvider>
             </AuthProvider>
           </QueryProvider>
