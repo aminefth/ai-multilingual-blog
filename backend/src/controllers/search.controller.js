@@ -4,20 +4,20 @@ const { searchService } = require('../services');
 
 const search = catchAsync(async (req, res) => {
   const { q, limit, offset, language, category, tags, sort, isPremium } = req.query;
-  
+
   // Build filters
   let filters = 'status = "published"';
-  
+
   if (category) {
     filters += ` AND categorySlug = "${category}"`;
   }
-  
+
   if (tags) {
     const tagList = tags.split(',').map((tag) => tag.trim());
     const tagFilters = tagList.map((tag) => `tags = "${tag}"`).join(' OR ');
     filters += ` AND (${tagFilters})`;
   }
-  
+
   if (isPremium !== undefined) {
     filters += ` AND isPremium = ${isPremium}`;
   }
@@ -37,10 +37,10 @@ const search = catchAsync(async (req, res) => {
 });
 
 const getSuggestions = catchAsync(async (req, res) => {
-  const { q, limit, language } = req.query;
-  
+  const { q, limit } = req.query;
+
   const suggestions = await searchService.getSuggestions(q, parseInt(limit));
-  
+
   res.status(httpStatus.OK).json({
     success: true,
     data: suggestions,
@@ -49,12 +49,12 @@ const getSuggestions = catchAsync(async (req, res) => {
 
 const searchCategories = catchAsync(async (req, res) => {
   const { q, limit = 10, language } = req.query;
-  
+
   const results = await searchService.searchCategories(q, {
     limit: parseInt(limit),
     language,
   });
-  
+
   res.status(httpStatus.OK).json({
     success: true,
     data: results,
@@ -63,7 +63,7 @@ const searchCategories = catchAsync(async (req, res) => {
 
 const getStats = catchAsync(async (req, res) => {
   const stats = await searchService.getIndexStats();
-  
+
   res.status(httpStatus.OK).json({
     success: true,
     data: stats,

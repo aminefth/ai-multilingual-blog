@@ -211,7 +211,7 @@ router.get('/', validate(searchSchema, 'query'), async (req, res) => {
  */
 router.get('/suggestions', validate(suggestionsSchema, 'query'), async (req, res) => {
   try {
-    const { q, limit, language } = req.query;
+    const { q, limit } = req.query;
 
     const suggestions = await searchService.getSuggestions(q, parseInt(limit));
 
